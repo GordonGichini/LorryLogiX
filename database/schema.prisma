@@ -1,0 +1,367 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RecordStatus {
+  ACTIVE
+  INACTIVE
+}
+enum ContractStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+  TERMINATED
+}
+enum AssetStatus {
+  ACTIVE
+  INACTIVE
+  UNDER_MAINTENANCE
+}
+enum TripStatus {
+  PLANNED
+  DISPATCHED
+  IN_TRANSIT
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+enum DeliveryNoteStatus {
+  PENDING
+  DELIVERED
+  SIGNED
+  REJECTED
+}
+enum ExpenseCategory {
+  PARKING
+  WEIGHBRIDGE
+  DRIVER_SALARY
+  GARAGE
+  MAINTENANCE
+  OTHER
+}
+enum FinancialPartyType {
+  OPERATOR
+  CLIENT
+  OTHER
+}
+enum ObligationStatus {
+  OUTSTANDING
+  PARTIALLY_SETTLED
+  SETTLED
+  CANCELLED
+}
+
+model Client {
+  id        String       @id @default(uuid()) @db.Uuid
+  name      String       @unique
+  status    RecordStatus @default(ACTIVE)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  contracts Contract[]
+  @@map("clients")
+}
+
+model Contract {
+  id           String         @id @default(uuid()) @db.Uuid
+  clientId     String         @map("client_id") @db.Uuid
+  reference    String         @unique
+  cargoDefault String?        @map("cargo_default")
+  currency     String         @default("KES") @db.Char(3)
+  startsOn     DateTime       @map("starts_on") @db.Date
+  endsOn       DateTime?      @map("ends_on") @db.Date
+  status       ContractStatus @default(DRAFT)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  client       Client         @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  routes       ContractRoute[]
+  fuelPolicies FuelCoveragePolicy[]
+  invoices     Invoice[]
+  @@index([clientId, status])
+  @@map("contracts")
+}
+
+model Asset {
+  id           String      @id @default(uuid()) @db.Uuid
+  registration String      @unique
+  description  String
+  status       AssetStatus @default(ACTIVE)
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  trips        Trip[]
+  maintenance  MaintenanceRecord[]
+  documents    AssetDocument[]
+  assignments  DriverAssignment[]
+  @@map("assets")
+}
+
+model Driver {
+  id          String       @id @default(uuid()) @db.Uuid
+  fullName    String
+  phoneNumber String?      @unique @map("phone_number")
+  status      RecordStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  trips       Trip[]
+  assignments DriverAssignment[]
+  @@map("drivers")
+}
+
+model Route {
+  id          String   @id @default(uuid()) @db.Uuid
+  origin      String
+  destination String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  contracts   ContractRoute[]
+  @@unique([origin, destination])
+  @@map("routes")
+}
+
+model ContractRoute {
+  id         String    @id @default(uuid()) @db.Uuid
+  contractId String    @map("contract_id") @db.Uuid
+  routeId    String    @map("route_id") @db.Uuid
+  rate       Decimal   @db.Decimal(14, 2)
+  currency   String    @default("KES") @db.Char(3)
+  activeFrom DateTime  @map("active_from") @db.Date
+  activeTo   DateTime? @map("active_to") @db.Date
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  contract   Contract  @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  route      Route     @relation(fields: [routeId], references: [id], onDelete: Restrict)
+  trips      Trip[]
+  @@index([contractId, activeFrom])
+  @@map("contract_routes")
+}
+
+model Trip {
+  id              String     @id @default(uuid()) @db.Uuid
+  contractRouteId String     @map("contract_route_id") @db.Uuid
+  lorryId         String     @map("lorry_id") @db.Uuid
+  driverId        String?    @map("driver_id") @db.Uuid
+  occurredAt      DateTime   @map("occurred_at")
+  cargoDescription String
+  cargoQuantity   Decimal?   @map("cargo_quantity") @db.Decimal(14, 3)
+  cargoUnit       String?    @map("cargo_unit")
+  agreedRate      Decimal    @map("agreed_rate") @db.Decimal(14, 2)
+  currency        String     @default("KES") @db.Char(3)
+  status          TripStatus @default(PLANNED)
+  notes           String?
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  contractRoute   ContractRoute @relation(fields: [contractRouteId], references: [id], onDelete: Restrict)
+  lorry           Asset      @relation(fields: [lorryId], references: [id], onDelete: Restrict)
+  driver          Driver?    @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  deliveryNote    DeliveryNote?
+  fuelTransactions FuelTransaction[]
+  expenses        Expense[]
+  invoice         Invoice?
+  @@index([lorryId, occurredAt])
+  @@index([contractRouteId, occurredAt])
+  @@index([status, occurredAt])
+  @@map("trips")
+}
+
+model DeliveryNote {
+  id               String             @id @default(uuid()) @db.Uuid
+  tripId           String             @unique @map("trip_id") @db.Uuid
+  noteNumber       String             @unique @map("note_number")
+  deliveredAt      DateTime?          @map("delivered_at")
+  senderCompany    String             @map("sender_company")
+  receiverCompany  String             @map("receiver_company")
+  senderSignedAt   DateTime?          @map("sender_signed_at")
+  receiverSignedAt DateTime?          @map("receiver_signed_at")
+  status           DeliveryNoteStatus @default(PENDING)
+  documentUrl      String?            @map("document_url")
+  notes            String?
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  trip             Trip               @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  @@map("delivery_notes")
+}
+
+model FuelCoveragePolicy {
+  id                     String       @id @default(uuid()) @db.Uuid
+  contractId             String       @map("contract_id") @db.Uuid
+  name                   String
+  cycleMonths            Int          @map("cycle_months")
+  operatorCoverageMonths Int          @map("operator_coverage_months")
+  clientCoverageMonths   Int          @map("client_coverage_months")
+  cycleStartDate         DateTime     @map("cycle_start_date") @db.Date
+  status                 RecordStatus @default(ACTIVE)
+  createdAt              DateTime     @default(now()) @map("created_at")
+  updatedAt              DateTime     @updatedAt @map("updated_at")
+  contract               Contract     @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  periods                FuelCoveragePeriod[]
+  @@unique([contractId, name])
+  @@map("fuel_coverage_policies")
+}
+
+model FuelCoveragePeriod {
+  id               String             @id @default(uuid()) @db.Uuid
+  policyId         String             @map("policy_id") @db.Uuid
+  periodNumber     Int                @map("period_number")
+  periodStart      DateTime           @map("period_start") @db.Date
+  periodEnd        DateTime           @map("period_end") @db.Date
+  responsibleParty FinancialPartyType @map("responsible_party")
+  status           RecordStatus       @default(ACTIVE)
+  createdAt        DateTime           @default(now()) @map("created_at")
+  policy           FuelCoveragePolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  obligations      FuelObligation[]
+  @@unique([policyId, periodNumber])
+  @@index([policyId, periodStart, periodEnd])
+  @@map("fuel_coverage_periods")
+}
+
+model FuelTransaction {
+  id           String             @id @default(uuid()) @db.Uuid
+  tripId       String             @map("trip_id") @db.Uuid
+  purchasedAt  DateTime           @map("purchased_at")
+  litres       Decimal?           @db.Decimal(14, 3)
+  totalAmount  Decimal            @map("total_amount") @db.Decimal(14, 2)
+  currency     String             @default("KES") @db.Char(3)
+  paymentParty FinancialPartyType @map("payment_party")
+  receiptRef   String?            @map("receipt_ref")
+  notes        String?
+  createdAt    DateTime           @default(now()) @map("created_at")
+  trip         Trip               @relation(fields: [tripId], references: [id], onDelete: Restrict)
+  obligation   FuelObligation?
+  @@index([tripId, purchasedAt])
+  @@map("fuel_transactions")
+}
+
+model FuelObligation {
+  id               String             @id @default(uuid()) @db.Uuid
+  fuelTransactionId String            @unique @map("fuel_transaction_id") @db.Uuid
+  coveragePeriodId String             @map("coverage_period_id") @db.Uuid
+  responsibleParty FinancialPartyType @map("responsible_party")
+  amount           Decimal            @db.Decimal(14, 2)
+  settledAmount    Decimal            @default(0) @map("settled_amount") @db.Decimal(14, 2)
+  status           ObligationStatus  @default(OUTSTANDING)
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  fuelTransaction  FuelTransaction    @relation(fields: [fuelTransactionId], references: [id], onDelete: Restrict)
+  coveragePeriod   FuelCoveragePeriod @relation(fields: [coveragePeriodId], references: [id], onDelete: Restrict)
+  allocations      FuelSettlementAllocation[]
+  @@index([coveragePeriodId, status])
+  @@map("fuel_obligations")
+}
+
+model FuelSettlement {
+  id          String             @id @default(uuid()) @db.Uuid
+  settledAt   DateTime           @map("settled_at")
+  paidBy      FinancialPartyType @map("paid_by")
+  totalAmount Decimal            @map("total_amount") @db.Decimal(14, 2)
+  currency    String             @default("KES") @db.Char(3)
+  reference   String?            @unique
+  notes       String?
+  createdAt   DateTime           @default(now()) @map("created_at")
+  allocations FuelSettlementAllocation[]
+  @@index([settledAt])
+  @@map("fuel_settlements")
+}
+
+model FuelSettlementAllocation {
+  id           String         @id @default(uuid()) @db.Uuid
+  settlementId String         @map("settlement_id") @db.Uuid
+  obligationId String         @map("obligation_id") @db.Uuid
+  amount       Decimal        @db.Decimal(14, 2)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  settlement   FuelSettlement @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+  obligation   FuelObligation @relation(fields: [obligationId], references: [id], onDelete: Restrict)
+  @@unique([settlementId, obligationId])
+  @@index([obligationId])
+  @@map("fuel_settlement_allocations")
+}
+
+model Expense {
+  id               String             @id @default(uuid()) @db.Uuid
+  tripId           String?            @map("trip_id") @db.Uuid
+  category         ExpenseCategory
+  amount           Decimal            @db.Decimal(14, 2)
+  currency         String             @default("KES") @db.Char(3)
+  responsibleParty FinancialPartyType @map("responsible_party")
+  incurredAt       DateTime           @map("incurred_at")
+  notes            String?
+  createdAt        DateTime           @default(now()) @map("created_at")
+  trip             Trip?              @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  @@index([tripId, incurredAt])
+  @@map("expenses")
+}
+
+model MaintenanceRecord {
+  id          String   @id @default(uuid()) @db.Uuid
+  lorryId     String   @map("lorry_id") @db.Uuid
+  performedAt DateTime @map("performed_at")
+  description String
+  cost        Decimal? @db.Decimal(14, 2)
+  currency    String   @default("KES") @db.Char(3)
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  lorry       Asset    @relation(fields: [lorryId], references: [id], onDelete: Restrict)
+  @@index([lorryId, performedAt])
+  @@map("maintenance_records")
+}
+
+model Invoice {
+  id          String   @id @default(uuid()) @db.Uuid
+  contractId  String   @map("contract_id") @db.Uuid
+  tripId      String?  @unique @map("trip_id") @db.Uuid
+  invoiceNumber String @unique @map("invoice_number")
+  issuedAt    DateTime @map("issued_at")
+  dueAt       DateTime? @map("due_at")
+  amount      Decimal  @db.Decimal(14, 2)
+  currency    String   @default("KES") @db.Char(3)
+  createdAt   DateTime @default(now()) @map("created_at")
+  contract    Contract @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  trip        Trip?    @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  payments    Payment[]
+  @@index([contractId, issuedAt])
+  @@map("invoices")
+}
+
+model Payment {
+  id          String   @id @default(uuid()) @db.Uuid
+  invoiceId   String   @map("invoice_id") @db.Uuid
+  paidAt      DateTime @map("paid_at")
+  amount      Decimal  @db.Decimal(14, 2)
+  currency    String   @default("KES") @db.Char(3)
+  reference   String?  @unique
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  @@index([invoiceId, paidAt])
+  @@map("payments")
+}
+
+model AssetDocument {
+  id        String   @id @default(uuid()) @db.Uuid
+  lorryId   String   @map("lorry_id") @db.Uuid
+  name      String
+  url       String
+  expiresAt DateTime? @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  lorry     Asset    @relation(fields: [lorryId], references: [id], onDelete: Cascade)
+  @@map("asset_documents")
+}
+
+model DriverAssignment {
+  id        String   @id @default(uuid()) @db.Uuid
+  lorryId   String   @map("lorry_id") @db.Uuid
+  driverId  String   @map("driver_id") @db.Uuid
+  startsOn  DateTime @map("starts_on") @db.Date
+  endsOn    DateTime? @map("ends_on") @db.Date
+  createdAt DateTime @default(now()) @map("created_at")
+  lorry     Asset    @relation(fields: [lorryId], references: [id], onDelete: Restrict)
+  driver    Driver   @relation(fields: [driverId], references: [id], onDelete: Restrict)
+  @@index([lorryId, startsOn])
+  @@index([driverId, startsOn])
+  @@map("driver_assignments")
+}

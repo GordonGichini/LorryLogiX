@@ -1,0 +1,16 @@
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { CreateAssetDto, CreateClientDto, CreateDriverDto, CreateRouteDto } from './dto/create-master-data.dto';
+import { MasterDataService } from './master-data.service';
+
+@Controller()
+export class MasterDataController {
+  constructor(private readonly service: MasterDataService) {}
+  @Post('clients') createClient(@Body() dto: CreateClientDto) { return this.service.createClient(dto); }
+  @Get('clients') listClients() { return this.service.listClients(); }
+  @Post('assets') createAsset(@Body() dto: CreateAssetDto) { return this.service.createAsset(dto); }
+  @Get('assets') listAssets() { return this.service.listAssets(); }
+  @Post('drivers') createDriver(@Body() dto: CreateDriverDto) { return this.service.createDriver(dto); }
+  @Get('drivers') listDrivers() { return this.service.listDrivers(); }
+  @Post('routes') createRoute(@Body() dto: CreateRouteDto) { return this.service.createRoute(dto); }
+  @Get('routes') listRoutes() { return this.service.listRoutes(); }
+}

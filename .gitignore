@@ -1,1 +1,7 @@
 node_modules
+.env
+.env.local
+.next/
+coverage/
+apps/api/dist/
+apps/api/src/generated/

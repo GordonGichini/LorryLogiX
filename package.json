@@ -11,7 +11,9 @@
     "dev:api": "npm run start:dev --workspace=apps/api",
     "build": "npm run build --workspaces",
     "lint": "npm run lint --workspaces",
-    "test": "npm run test --workspaces"
+    "test": "npm run test --workspaces",
+    "prisma:generate": "npm run prisma:generate --workspace=apps/api",
+    "prisma:validate": "npm run prisma:validate --workspace=apps/api"
   },
   "keywords": [],
   "author": "",
