@@ -5,7 +5,10 @@ const navItems = [
   { href: "/clients", label: "Clients" },
   { href: "/contracts", label: "Contracts" },
   { href: "/routes", label: "Routes" },
+  { href: "/assets", label: "Lorries" },
+  { href: "/drivers", label: "Drivers" },
   { href: "/trips", label: "Trips" },
+  { href: "/fuel", label: "Fuel" },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {

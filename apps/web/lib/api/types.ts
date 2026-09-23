@@ -103,6 +103,36 @@ export interface Trip {
   };
 }
 
+export interface FuelObligation {
+  id: string;
+  fuelTransactionId: string;
+  coveragePeriodId: string;
+  responsibleParty: "OPERATOR" | "CLIENT" | "OTHER";
+  amount: string;
+  settledAmount: string;
+  status: "OUTSTANDING" | "PARTIALLY_SETTLED" | "SETTLED" | "CANCELLED";
+  createdAt: string;
+  updatedAt: string;
+  fuelTransaction?: {
+    id: string;
+    tripId: string;
+    totalAmount: string;
+    paymentParty: "OPERATOR" | "CLIENT" | "OTHER";
+    trip?: {
+      id: string;
+      status: TripStatus;
+      agreedRate: string;
+    };
+  };
+  coveragePeriod?: {
+    id: string;
+    periodNumber: number;
+    periodStart: string;
+    periodEnd: string;
+    responsibleParty: "OPERATOR" | "CLIENT" | "OTHER";
+  };
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   page: number;
