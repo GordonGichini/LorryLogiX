@@ -7,7 +7,7 @@ export default async function DriversPage() {
   return (
     <div>
       <PageHeader title="Drivers" description="Operational driving team and assignment status." />
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="data-panel">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-600">

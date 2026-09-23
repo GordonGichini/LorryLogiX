@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowUpRight, Fuel, Route, Truck, UsersRound } from "lucide-react";
 import { getClients } from "../lib/api/clients";
 import { getContracts } from "../lib/api/contracts";
 import { getRoutes } from "../lib/api/routes";
@@ -15,56 +16,59 @@ export default async function HomePage() {
   const totalRevenue = trips.data.reduce((sum, trip) => sum + Number(trip.agreedRate || 0), 0);
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div className="space-y-7">
+      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Dashboard</p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Operational overview</h2>
+          <p className="eyebrow">Thursday, 24 September 2026</p>
+          <h2 className="mt-2 text-4xl font-semibold tracking-[-0.05em] text-[#292b27]">Good morning, Nevila.</h2>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-[#777970]">A quiet view of the fleet, the commercial book, and what needs attention next.</p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-slate-600">
-          <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">Today</span>
-          <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">This week</span>
-          <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">This month</span>
+        <div className="flex items-center gap-2 text-xs font-medium text-[#65685f]">
+          <span className="rounded-lg border border-[#c3c8b8] bg-[#dfe2d6] px-3 py-2 text-[#4f5d48]">Today</span>
+          <span className="rounded-lg border border-[#d5d4cb] bg-[#f7f6f1] px-3 py-2">This week</span>
+          <span className="rounded-lg border border-[#d5d4cb] bg-[#f7f6f1] px-3 py-2">This month</span>
         </div>
       </header>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard title="Total trips" value={String(trips.total)} subtitle="Across active contracts" />
-        <StatCard title="Clients" value={String(clients.length)} subtitle="Active relationships" />
-        <StatCard title="Contracts" value={String(contracts.length)} subtitle="Commercial agreements" />
-        <StatCard title="Routes" value={String(routes.length)} subtitle="Operational corridors" />
+        <StatCard icon={ArrowUpRight} title="Total trips" value={String(trips.total)} subtitle="Across active contracts" />
+        <StatCard icon={UsersRound} title="Clients" value={String(clients.length)} subtitle="Active relationships" />
+        <StatCard icon={Truck} title="Contracts" value={String(contracts.length)} subtitle="Commercial agreements" />
+        <StatCard icon={Route} title="Routes" value={String(routes.length)} subtitle="Operational corridors" />
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="data-panel p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-slate-900">Revenue snapshot</h3>
-            <span className="text-sm text-slate-500">KES</span>
+            <div><p className="eyebrow">Commercial pulse</p><h3 className="mt-2 text-lg font-semibold text-[#292b27]">Revenue snapshot</h3></div>
+            <Fuel size={19} className="text-[#66705b]" />
           </div>
-          <div className="text-3xl font-semibold text-slate-900">KES {Number(totalRevenue).toLocaleString()}</div>
-          <p className="mt-2 text-sm text-slate-600">Based on the most recent trip rate snapshots returned by the API.</p>
+          <div className="text-4xl font-semibold tracking-[-0.05em] text-[#292b27]">KES {Number(totalRevenue).toLocaleString()}</div>
+          <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#dedfd6]"><div className="h-full w-[68%] rounded-full bg-[#66705b]" /></div>
+          <p className="mt-3 text-sm text-[#777970]">Based on the most recent trip rate snapshots returned by the API.</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-900">Commercial context</h3>
-          <ul className="mt-4 space-y-3 text-sm text-slate-600">
-            <li><strong className="text-slate-900">Current client:</strong> Nevila</li>
-            <li><strong className="text-slate-900">Origin:</strong> Kumpar warehouse</li>
-            <li><strong className="text-slate-900">Cargo:</strong> Lime mineral</li>
-            <li><strong className="text-slate-900">Routes:</strong> Thika / Ngong / Industrial Area</li>
+        <div className="data-panel p-6">
+          <p className="eyebrow">Current lane</p>
+          <h3 className="mt-2 text-lg font-semibold text-[#292b27]">Commercial context</h3>
+          <ul className="mt-5 space-y-3 text-sm text-[#65685f]">
+            <li className="flex justify-between gap-4 border-b border-[#e1e0d8] pb-3"><strong className="font-medium text-[#292b27]">Client</strong> Nevila</li>
+            <li className="flex justify-between gap-4 border-b border-[#e1e0d8] pb-3"><strong className="font-medium text-[#292b27]">Origin</strong> Kumpar warehouse</li>
+            <li className="flex justify-between gap-4 border-b border-[#e1e0d8] pb-3"><strong className="font-medium text-[#292b27]">Cargo</strong> Lime mineral</li>
+            <li className="flex justify-between gap-4"><strong className="font-medium text-[#292b27]">Routes</strong> Thika / Ngong / Industrial Area</li>
           </ul>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="data-panel p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-900">Recent trips</h3>
-          <Link href="/trips" className="text-sm font-medium text-sky-700 hover:text-sky-800">View all</Link>
+          <div><p className="eyebrow">Live activity</p><h3 className="mt-2 text-lg font-semibold text-[#292b27]">Recent trips</h3></div>
+          <Link href="/trips" className="flex items-center gap-1 text-sm font-semibold text-[#66705b] hover:text-[#3f4938]">View all <ArrowUpRight size={15} /></Link>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead>
-              <tr className="text-slate-500">
+          <table className="min-w-full divide-y divide-[#e1e0d8] text-left text-sm">
+            <thead className="text-[#777970]">
+              <tr>
                 <th className="py-2 pr-4 font-medium">Trip</th>
                 <th className="py-2 pr-4 font-medium">Date</th>
                 <th className="py-2 pr-4 font-medium">Route</th>
@@ -80,11 +84,11 @@ export default async function HomePage() {
               ) : (
                 trips.data.map((trip) => (
                   <tr key={trip.id} className="text-slate-700">
-                    <td className="py-3 pr-4 font-medium text-slate-900">{trip.id.slice(0, 8)}</td>
-                    <td className="py-3 pr-4">{new Date(trip.occurredAt).toLocaleDateString()}</td>
-                    <td className="py-3 pr-4">{trip.contractRoute?.route.origin} → {trip.contractRoute?.route.destination}</td>
-                    <td className="py-3 pr-4">KES {Number(trip.agreedRate).toLocaleString()}</td>
-                    <td className="py-3 pr-4"><span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">{trip.status}</span></td>
+                    <td className="py-3 pr-4 font-medium text-[#292b27]">{trip.id.slice(0, 8)}</td>
+                    <td className="py-3 pr-4 text-[#65685f]">{new Date(trip.occurredAt).toLocaleDateString()}</td>
+                    <td className="py-3 pr-4 text-[#65685f]">{trip.contractRoute?.route.origin} → {trip.contractRoute?.route.destination}</td>
+                    <td className="py-3 pr-4 text-[#65685f]">KES {Number(trip.agreedRate).toLocaleString()}</td>
+                    <td className="py-3 pr-4"><span className="rounded-full bg-[#dfe2d9] px-2 py-1 text-xs font-semibold text-[#5e6955]">{trip.status}</span></td>
                   </tr>
                 ))
               )}
@@ -96,12 +100,12 @@ export default async function HomePage() {
   );
 }
 
-function StatCard({ title, value, subtitle }: { title: string; value: string; subtitle: string }) {
+function StatCard({ icon: Icon, title, value, subtitle }: { icon: typeof ArrowUpRight; title: string; value: string; subtitle: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-slate-500">{title}</p>
-      <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">{value}</div>
-      <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+    <div className="data-panel p-5">
+      <div className="flex items-center justify-between"><p className="text-sm font-medium text-[#777970]">{title}</p><Icon size={18} className="text-[#8d9581]" /></div>
+      <div className="mt-5 text-3xl font-semibold tracking-[-0.04em] text-[#292b27]">{value}</div>
+      <p className="mt-1 text-sm text-[#777970]">{subtitle}</p>
     </div>
   );
 }

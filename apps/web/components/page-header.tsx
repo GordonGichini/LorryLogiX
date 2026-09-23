@@ -6,10 +6,11 @@ type PageHeaderProps = {
 
 export function PageHeader({ title, description, actions }: PageHeaderProps) {
   return (
-    <div className="mb-6 flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mb-7 flex flex-col gap-3 border-b border-[#d5d4cb] pb-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h2 className="text-2xl font-semibold text-slate-900">{title}</h2>
-        {description ? <p className="mt-1 text-sm text-slate-600">{description}</p> : null}
+        <p className="eyebrow">Workspace</p>
+        <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[#292b27]">{title}</h2>
+        {description ? <p className="mt-2 max-w-2xl text-sm text-[#777970]">{description}</p> : null}
       </div>
       {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
     </div>

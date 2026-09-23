@@ -7,7 +7,7 @@ export default async function FuelPage() {
   return (
     <div>
       <PageHeader title="Fuel obligations" description="Outstanding fuel responsibility and settlement state." />
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="data-panel">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-600">
