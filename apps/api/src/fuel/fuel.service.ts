@@ -69,7 +69,15 @@ export class FuelService {
     if (!allocationTotal.equals(totalAmount)) throw new BadRequestException('Settlement total must exactly equal the sum of allocations.');
     const uniqueObligations = new Set(dto.allocations.map((allocation) => allocation.obligationId));
     if (uniqueObligations.size !== dto.allocations.length) throw new BadRequestException('An obligation can be allocated only once per settlement.');
+
     return this.prisma.$transaction(async (tx) => {
+      if (dto.reference) {
+        const existingSettlement = await tx.fuelSettlement.findUnique({ where: { reference: dto.reference } });
+        if (existingSettlement) {
+          throw new BadRequestException(`Settlement reference "${dto.reference}" already exists.`);
+        }
+      }
+
       const obligations = await tx.fuelObligation.findMany({ where: { id: { in: [...uniqueObligations] } } });
       if (obligations.length !== uniqueObligations.size) throw new NotFoundException('One or more fuel obligations were not found.');
       const obligationById = new Map(obligations.map((obligation) => [obligation.id, obligation]));
