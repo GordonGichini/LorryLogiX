@@ -1,5 +1,4 @@
 import { ContractStatus } from '@prisma/client';
-import { Type } from 'class-transformer';
 import { IsDateString, IsEnum, IsOptional, IsString, IsUUID, Length, Matches } from 'class-validator';
 
 export class CreateContractDto {

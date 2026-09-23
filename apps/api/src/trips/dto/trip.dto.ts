@@ -1,5 +1,4 @@
 import { TripStatus } from '@prisma/client';
-import { Type } from 'class-transformer';
 import { IsDateString, IsEnum, IsOptional, IsString, IsUUID, Length, Matches } from 'class-validator';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 

@@ -5,12 +5,12 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: lorrylogix
-      POSTGRES_USER: lorrylogix
-      POSTGRES_PASSWORD: lorrylogix
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: LorryLogiX@2026
     ports: ["5433:5432"]
     volumes: ["postgres_data:/var/lib/postgresql/data"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U lorrylogix -d lorrylogix"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d lorrylogix"]
       interval: 5s
       timeout: 5s
       retries: 10
