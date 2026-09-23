@@ -1,21 +1,21 @@
 const toneMap: Record<string, string> = {
-  ACTIVE: "bg-[#d9dfd0] text-[#4a5942] ring-[#bcc7af]",
-  INACTIVE: "bg-[#e3e2db] text-[#6e7169] ring-[#d0cfc6]",
-  DRAFT: "bg-[#e8dfcf] text-[#806747] ring-[#d7c6aa]",
-  SUSPENDED: "bg-[#eadbcf] text-[#865f49] ring-[#d9baa4]",
-  EXPIRED: "bg-[#ead6d0] text-[#875649] ring-[#d7b6ac]",
-  TERMINATED: "bg-[#deddd6] text-[#65685f] ring-[#c9c8bf]",
-  PLANNED: "bg-[#dfe2d9] text-[#5e6955] ring-[#c7ccb9]",
-  DISPATCHED: "bg-[#d8dfd8] text-[#4e6658] ring-[#bdcabe]",
-  IN_TRANSIT: "bg-[#d9dfd0] text-[#4a5942] ring-[#bcc7af]",
-  DELIVERED: "bg-[#dce2d7] text-[#50634d] ring-[#c0cfba]",
-  COMPLETED: "bg-[#d0dccd] text-[#466044] ring-[#b2c7ae]",
-  CANCELLED: "bg-[#e3e2db] text-[#6e7169] ring-[#d0cfc6]",
-  FAILED: "bg-[#ead6d0] text-[#875649] ring-[#d7b6ac]",
+  ACTIVE: "bg-[#d8e3ec] text-[#36536c] ring-[#b9cbd9]",
+  INACTIVE: "bg-[#e1e5e8] text-[#687582] ring-[#ccd5dc]",
+  DRAFT: "bg-[#e5e1d7] text-[#756b58] ring-[#d2c8b4]",
+  SUSPENDED: "bg-[#e4dcd8] text-[#765f55] ring-[#cfbdb4]",
+  EXPIRED: "bg-[#e5d9d7] text-[#795b5a] ring-[#d0baba]",
+  TERMINATED: "bg-[#dfe3e6] text-[#687582] ring-[#c8d1d8]",
+  PLANNED: "bg-[#dce5eb] text-[#4f687d] ring-[#c3d2de]",
+  DISPATCHED: "bg-[#d6e1e8] text-[#45647b] ring-[#b9cad7]",
+  IN_TRANSIT: "bg-[#d2e0ea] text-[#36536c] ring-[#b1c6d6]",
+  DELIVERED: "bg-[#d8e4e7] text-[#49666d] ring-[#b9cfd3]",
+  COMPLETED: "bg-[#d2e1dc] text-[#42635a] ring-[#b2cbbf]",
+  CANCELLED: "bg-[#e1e5e8] text-[#687582] ring-[#ccd5dc]",
+  FAILED: "bg-[#e5d9d7] text-[#795b5a] ring-[#d0baba]",
 };
 
 export function StatusBadge({ value }: { value: string }) {
-  const tone = toneMap[value] ?? "bg-[#e3e2db] text-[#65685f] ring-[#d0cfc6]";
+  const tone = toneMap[value] ?? "bg-[#e1e5e8] text-[#687582] ring-[#ccd5dc]";
   return (
     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${tone}`}>
       {value.replace(/_/g, " ")}

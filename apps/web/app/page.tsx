@@ -24,9 +24,9 @@ export default async function HomePage() {
           <p className="mt-2 max-w-xl text-sm leading-6 text-[#777970]">A quiet view of the fleet, the commercial book, and what needs attention next.</p>
         </div>
         <div className="flex items-center gap-2 text-xs font-medium text-[#65685f]">
-          <span className="rounded-lg border border-[#c3c8b8] bg-[#dfe2d6] px-3 py-2 text-[#4f5d48]">Today</span>
-          <span className="rounded-lg border border-[#d5d4cb] bg-[#f7f6f1] px-3 py-2">This week</span>
-          <span className="rounded-lg border border-[#d5d4cb] bg-[#f7f6f1] px-3 py-2">This month</span>
+          <span className="rounded-lg border border-[#b9cbd9] bg-[#d8e3ec] px-3 py-2 text-[#36536c]">Today</span>
+          <span className="rounded-lg border border-[#d1d9e0] bg-[#f5f7f8] px-3 py-2">This week</span>
+          <span className="rounded-lg border border-[#d1d9e0] bg-[#f5f7f8] px-3 py-2">This month</span>
         </div>
       </header>
 
@@ -40,22 +40,22 @@ export default async function HomePage() {
       <section className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
         <div className="data-panel p-6">
           <div className="mb-4 flex items-center justify-between">
-            <div><p className="eyebrow">Commercial pulse</p><h3 className="mt-2 text-lg font-semibold text-[#292b27]">Revenue snapshot</h3></div>
-            <Fuel size={19} className="text-[#66705b]" />
+            <div><p className="eyebrow">Commercial pulse</p><h3 className="mt-2 text-lg font-semibold text-[#1c2835]">Revenue snapshot</h3></div>
+            <Fuel size={19} className="text-[#5c7894]" />
           </div>
-          <div className="text-4xl font-semibold tracking-[-0.05em] text-[#292b27]">KES {Number(totalRevenue).toLocaleString()}</div>
-          <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#dedfd6]"><div className="h-full w-[68%] rounded-full bg-[#66705b]" /></div>
-          <p className="mt-3 text-sm text-[#777970]">Based on the most recent trip rate snapshots returned by the API.</p>
+          <div className="text-4xl font-semibold tracking-[-0.05em] text-[#1c2835]">KES {Number(totalRevenue).toLocaleString()}</div>
+          <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#dce2e7]"><div className="h-full w-[68%] rounded-full bg-[#5c7894]" /></div>
+          <p className="mt-3 text-sm text-[#6c7782]">Based on the most recent trip rate snapshots returned by the API.</p>
         </div>
 
         <div className="data-panel p-6">
           <p className="eyebrow">Current lane</p>
-          <h3 className="mt-2 text-lg font-semibold text-[#292b27]">Commercial context</h3>
-          <ul className="mt-5 space-y-3 text-sm text-[#65685f]">
-            <li className="flex justify-between gap-4 border-b border-[#e1e0d8] pb-3"><strong className="font-medium text-[#292b27]">Client</strong> Nevila</li>
-            <li className="flex justify-between gap-4 border-b border-[#e1e0d8] pb-3"><strong className="font-medium text-[#292b27]">Origin</strong> Kumpar warehouse</li>
-            <li className="flex justify-between gap-4 border-b border-[#e1e0d8] pb-3"><strong className="font-medium text-[#292b27]">Cargo</strong> Lime mineral</li>
-            <li className="flex justify-between gap-4"><strong className="font-medium text-[#292b27]">Routes</strong> Thika / Ngong / Industrial Area</li>
+          <h3 className="mt-2 text-lg font-semibold text-[#1c2835]">Commercial context</h3>
+          <ul className="mt-5 space-y-3 text-sm text-[#607080]">
+            <li className="flex justify-between gap-4 border-b border-[#dce2e7] pb-3"><strong className="font-medium text-[#1c2835]">Client</strong> Nevila</li>
+            <li className="flex justify-between gap-4 border-b border-[#dce2e7] pb-3"><strong className="font-medium text-[#1c2835]">Origin</strong> Kumpar warehouse</li>
+            <li className="flex justify-between gap-4 border-b border-[#dce2e7] pb-3"><strong className="font-medium text-[#1c2835]">Cargo</strong> Lime mineral</li>
+            <li className="flex justify-between gap-4"><strong className="font-medium text-[#1c2835]">Routes</strong> Thika / Ngong / Industrial Area</li>
           </ul>
         </div>
       </section>
@@ -63,7 +63,7 @@ export default async function HomePage() {
       <section className="data-panel p-6">
         <div className="mb-4 flex items-center justify-between">
           <div><p className="eyebrow">Live activity</p><h3 className="mt-2 text-lg font-semibold text-[#292b27]">Recent trips</h3></div>
-          <Link href="/trips" className="flex items-center gap-1 text-sm font-semibold text-[#66705b] hover:text-[#3f4938]">View all <ArrowUpRight size={15} /></Link>
+          <Link href="/trips" className="flex items-center gap-1 text-sm font-semibold text-[#5c7894] hover:text-[#27415e]">View all <ArrowUpRight size={15} /></Link>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-[#e1e0d8] text-left text-sm">
