@@ -27,6 +27,7 @@ export async function deactivateRoute(id: string): Promise<Route> {
   return apiFetch<Route>(`/routes/${id}`, { method: "DELETE" });
 }
 
-export async function updateRoutePricing(contractId: string, routePricingId: string, payload: Omit<RoutePayload, "origin" | "destination" | "contractId">): Promise<unknown> {
-  return apiFetch(`/contracts/${contractId}/routes/${routePricingId}`, { method: "PATCH", body: JSON.stringify(payload) });
+export async function updateRoutePricing(routeId: string, payload: Required<Pick<RoutePayload, "contractId" | "rate" | "activeFrom">> & Pick<RoutePayload, "currency" | "activeTo">): Promise<unknown> {
+  return apiFetch(`/routes/${routeId}/pricing`, { method: "PATCH", body: JSON.stringify(payload) });
 }
+

@@ -10,7 +10,7 @@ export class ContractsService {
     if (dto.endsOn && dto.endsOn < dto.startsOn) throw new BadRequestException('endsOn must be on or after startsOn.');
     return this.prisma.contract.create({ data: { ...dto, startsOn: new Date(dto.startsOn), endsOn: dto.endsOn ? new Date(dto.endsOn) : undefined } });
   }
-  list() { return this.prisma.contract.findMany({ include: { client: true, routes: { include: { route: true } } }, orderBy: { startsOn: 'desc' } }); }
+  list() { return this.prisma.contract.findMany({ include: { client: true, routes: { where: { OR: [{ activeTo: null }, { activeTo: { gte: new Date() } }] }, include: { route: true } } }, orderBy: { startsOn: 'desc' } }); }
   async addRoute(contractId: string, dto: CreateContractRouteDto) {
     const contract = await this.prisma.contract.findUnique({ where: { id: contractId } });
     if (!contract) throw new NotFoundException('Contract not found.');

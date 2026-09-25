@@ -28,3 +28,11 @@ export class UpdateRouteDto {
   @IsOptional() @IsString() @Length(2, 120) origin?: string;
   @IsOptional() @IsString() @Length(2, 120) destination?: string;
 }
+
+export class UpdateRoutePricingDto {
+  @IsUUID() contractId!: string;
+  @Matches(/^\d+(\.\d{1,2})?$/) rate!: string;
+  @IsOptional() @IsString() @Length(3, 3) currency?: string;
+  @IsDateString() activeFrom!: string;
+  @IsOptional() @IsDateString() activeTo?: string;
+}

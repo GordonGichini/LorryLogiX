@@ -9,5 +9,11 @@ Trip agreed rates are snapshots: route edits never rewrite history. Parking and 
 ## Why it matters and trade-offs
 Rules belong in services and constraints, never in a UI. Client coverage might mean direct payment or reimbursement; settlement behaviour is **TBD**, not inferred.
 
+## Route status and contract synchronization
+
+Routes are physical origin/destination corridors. Commercial ownership and pricing belong to the contract-route relationship. A route can be deactivated without deleting its historical record.
+
+When route pricing is reassigned to another contract, the previous pricing period is closed when the new effective date is later. Contract route counts represent currently active pricing relationships, while historical relationships remain available for audit and historical trip context.
+
 ## Questions and exercise
 What data proves who paid fuel versus who ultimately owes it?
