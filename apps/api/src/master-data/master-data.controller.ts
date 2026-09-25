@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { CreateAssetDto, CreateClientDto, CreateDriverDto, CreateRouteDto } from './dto/create-master-data.dto';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { CreateAssetDto, CreateClientDto, CreateDriverDto, CreateRouteDto, UpdateRouteDto } from './dto/create-master-data.dto';
 import { MasterDataService } from './master-data.service';
 
 @Controller()
@@ -12,5 +12,6 @@ export class MasterDataController {
   @Post('drivers') createDriver(@Body() dto: CreateDriverDto) { return this.service.createDriver(dto); }
   @Get('drivers') listDrivers() { return this.service.listDrivers(); }
   @Post('routes') createRoute(@Body() dto: CreateRouteDto) { return this.service.createRoute(dto); }
+  @Patch('routes/:id') updateRoute(@Param('id') id: string, @Body() dto: UpdateRouteDto) { return this.service.updateRoute(id, dto); }
   @Get('routes') listRoutes() { return this.service.listRoutes(); }
 }

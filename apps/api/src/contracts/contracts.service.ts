@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateContractDto, CreateContractRouteDto } from './dto/create-contract.dto';
+import { CreateContractDto, CreateContractRouteDto, UpdateContractRouteDto } from './dto/create-contract.dto';
 
 @Injectable()
 export class ContractsService {
@@ -15,6 +15,14 @@ export class ContractsService {
     const contract = await this.prisma.contract.findUnique({ where: { id: contractId } });
     if (!contract) throw new NotFoundException('Contract not found.');
     if (dto.activeTo && dto.activeTo < dto.activeFrom) throw new BadRequestException('activeTo must be on or after activeFrom.');
-    return this.prisma.contractRoute.create({ data: { contractId, routeId: dto.routeId, rate: new Prisma.Decimal(dto.rate), activeFrom: new Date(dto.activeFrom), activeTo: dto.activeTo ? new Date(dto.activeTo) : undefined } });
+    return this.prisma.contractRoute.create({ data: { contractId, routeId: dto.routeId, rate: new Prisma.Decimal(dto.rate), currency: dto.currency ?? 'KES', activeFrom: new Date(dto.activeFrom), activeTo: dto.activeTo ? new Date(dto.activeTo) : undefined } });
+  }
+  async updateRoute(contractId: string, routeId: string, dto: UpdateContractRouteDto) {
+    const contractRoute = await this.prisma.contractRoute.findFirst({ where: { id: routeId, contractId } });
+    if (!contractRoute) throw new NotFoundException('Contract route pricing not found.');
+    const activeFrom = dto.activeFrom ?? contractRoute.activeFrom.toISOString();
+    const activeTo = dto.activeTo ?? contractRoute.activeTo?.toISOString();
+    if (activeTo && activeTo < activeFrom) throw new BadRequestException('activeTo must be on or after activeFrom.');
+    return this.prisma.contractRoute.update({ where: { id: routeId }, data: { rate: dto.rate ? new Prisma.Decimal(dto.rate) : undefined, currency: dto.currency, activeFrom: dto.activeFrom ? new Date(dto.activeFrom) : undefined, activeTo: dto.activeTo ? new Date(dto.activeTo) : dto.activeTo === undefined ? undefined : null }, include: { route: true, contract: { include: { client: true } } } });
   }
 }

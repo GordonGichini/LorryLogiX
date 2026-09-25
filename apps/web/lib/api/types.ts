@@ -17,6 +17,22 @@ export interface Route {
   destination: string;
   createdAt: string;
   updatedAt: string;
+  contracts?: RoutePricing[];
+}
+
+export interface RoutePricing {
+  id: string;
+  contractId: string;
+  routeId: string;
+  rate: string;
+  currency: string;
+  activeFrom: string;
+  activeTo?: string | null;
+  contract: {
+    id: string;
+    reference: string;
+    client: Client;
+  };
 }
 
 export interface Asset {

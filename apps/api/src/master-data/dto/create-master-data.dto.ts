@@ -1,5 +1,5 @@
 import { AssetStatus, RecordStatus } from '@prisma/client';
-import { IsEnum, IsOptional, IsString, Length, Matches } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString, IsUUID, Length, Matches } from 'class-validator';
 
 export class CreateClientDto {
   @IsString() @Length(2, 120) name!: string;
@@ -17,4 +17,14 @@ export class CreateDriverDto {
 export class CreateRouteDto {
   @IsString() @Length(2, 120) origin!: string;
   @IsString() @Length(2, 120) destination!: string;
+  @IsOptional() @IsUUID() contractId?: string;
+  @IsOptional() @Matches(/^\d+(\.\d{1,2})?$/) rate?: string;
+  @IsOptional() @IsString() @Length(3, 3) currency?: string;
+  @IsOptional() @IsDateString() activeFrom?: string;
+  @IsOptional() @IsDateString() activeTo?: string;
+}
+
+export class UpdateRouteDto {
+  @IsOptional() @IsString() @Length(2, 120) origin?: string;
+  @IsOptional() @IsString() @Length(2, 120) destination?: string;
 }

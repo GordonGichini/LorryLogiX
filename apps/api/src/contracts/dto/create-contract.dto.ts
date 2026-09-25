@@ -12,6 +12,14 @@ export class CreateContractDto {
 export class CreateContractRouteDto {
   @IsUUID() routeId!: string;
   @Matches(/^\d+(\.\d{1,2})?$/) rate!: string;
+  @IsOptional() @IsString() @Length(3, 3) currency?: string;
   @IsDateString() activeFrom!: string;
+  @IsOptional() @IsDateString() activeTo?: string;
+}
+
+export class UpdateContractRouteDto {
+  @IsOptional() @Matches(/^\d+(\.\d{1,2})?$/) rate?: string;
+  @IsOptional() @IsString() @Length(3, 3) currency?: string;
+  @IsOptional() @IsDateString() activeFrom?: string;
   @IsOptional() @IsDateString() activeTo?: string;
 }
