@@ -1,5 +1,5 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, RecordStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAssetDto, CreateClientDto, CreateDriverDto, CreateRouteDto, UpdateRouteDto } from './dto/create-master-data.dto';
 
@@ -20,6 +20,8 @@ export class MasterDataService {
     if (dto.activeTo && dto.activeFrom && dto.activeTo < dto.activeFrom) {
       throw new BadRequestException('activeTo must be on or after activeFrom.');
     }
+    const existingRoute = await this.prisma.route.findUnique({ where: { origin_destination: { origin: dto.origin, destination: dto.destination } } });
+    if (existingRoute) throw new ConflictException('A route with this origin and destination already exists. Edit the existing route instead.');
     return this.prisma.$transaction(async (tx) => {
       const route = await tx.route.create({ data: { origin: dto.origin, destination: dto.destination } });
       if (!dto.contractId) return tx.route.findUniqueOrThrow({ where: { id: route.id }, include: { contracts: { include: { contract: { include: { client: true } } } } } });
@@ -29,6 +31,19 @@ export class MasterDataService {
       return tx.route.findUniqueOrThrow({ where: { id: route.id }, include: { contracts: { include: { contract: { include: { client: true } } } } } });
     });
   }
-  updateRoute(id: string, dto: UpdateRouteDto) { return this.prisma.route.update({ where: { id }, data: dto, include: { contracts: { include: { contract: { include: { client: true } } } } } }); }
+  async updateRoute(id: string, dto: UpdateRouteDto) {
+    const route = await this.prisma.route.findUnique({ where: { id } });
+    if (!route) throw new NotFoundException('Route not found.');
+    const origin = dto.origin ?? route.origin;
+    const destination = dto.destination ?? route.destination;
+    const duplicate = await this.prisma.route.findUnique({ where: { origin_destination: { origin, destination } } });
+    if (duplicate && duplicate.id !== id) throw new ConflictException('A route with this origin and destination already exists.');
+    return this.prisma.route.update({ where: { id }, data: dto, include: { contracts: { include: { contract: { include: { client: true } } } } } });
+  }
+  async deactivateRoute(id: string) {
+    const route = await this.prisma.route.findUnique({ where: { id } });
+    if (!route) throw new NotFoundException('Route not found.');
+    return this.prisma.route.update({ where: { id }, data: { status: RecordStatus.INACTIVE }, include: { contracts: { include: { contract: { include: { client: true } } } } } });
+  }
   listRoutes() { return this.prisma.route.findMany({ include: { contracts: { include: { contract: { include: { client: true } } } } }, orderBy: [{ origin: 'asc' }, { destination: 'asc' }] }); }
 }

@@ -17,6 +17,7 @@ export interface Route {
   destination: string;
   createdAt: string;
   updatedAt: string;
+  status: RecordStatus;
   contracts?: RoutePricing[];
 }
 

@@ -23,6 +23,10 @@ export async function updateRoute(id: string, payload: Pick<RoutePayload, "origi
   return apiFetch<Route>(`/routes/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
 }
 
+export async function deactivateRoute(id: string): Promise<Route> {
+  return apiFetch<Route>(`/routes/${id}`, { method: "DELETE" });
+}
+
 export async function updateRoutePricing(contractId: string, routePricingId: string, payload: Omit<RoutePayload, "origin" | "destination" | "contractId">): Promise<unknown> {
   return apiFetch(`/contracts/${contractId}/routes/${routePricingId}`, { method: "PATCH", body: JSON.stringify(payload) });
 }
