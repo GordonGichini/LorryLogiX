@@ -6,7 +6,10 @@ export default async function ClientsPage() {
 
   return (
     <div>
-      <PageHeader title="Clients" description="Managed customer relationships and contract coverage." />
+      <PageHeader
+        title="Clients"
+        description="Managed customer relationships and contract coverage."
+      />
       <div className="data-panel">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
@@ -19,13 +22,21 @@ export default async function ClientsPage() {
             <tbody className="divide-y divide-slate-200">
               {clients.length === 0 ? (
                 <tr>
-                  <td colSpan={2} className="px-4 py-6 text-slate-500">No clients found.</td>
+                  <td colSpan={2} className="px-4 py-6 text-slate-500">
+                    No clients found.
+                  </td>
                 </tr>
               ) : (
                 clients.map((client) => (
                   <tr key={client.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900">{client.name}</td>
-                    <td className="px-4 py-3"><span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700">{client.status}</span></td>
+                    <td className="px-4 py-3 font-medium text-slate-900">
+                      {client.name}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700">
+                        {client.status}
+                      </span>
+                    </td>
                   </tr>
                 ))
               )}

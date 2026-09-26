@@ -1,7 +1,19 @@
 export type RecordStatus = "ACTIVE" | "INACTIVE";
-export type ContractStatus = "DRAFT" | "ACTIVE" | "SUSPENDED" | "EXPIRED" | "TERMINATED";
+export type ContractStatus =
+  | "DRAFT"
+  | "ACTIVE"
+  | "SUSPENDED"
+  | "EXPIRED"
+  | "TERMINATED";
 export type AssetStatus = "ACTIVE" | "INACTIVE" | "UNDER_MAINTENANCE";
-export type TripStatus = "PLANNED" | "DISPATCHED" | "IN_TRANSIT" | "DELIVERED" | "COMPLETED" | "CANCELLED" | "FAILED";
+export type TripStatus =
+  | "PLANNED"
+  | "DISPATCHED"
+  | "IN_TRANSIT"
+  | "DELIVERED"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "FAILED";
 
 export interface Client {
   id: string;

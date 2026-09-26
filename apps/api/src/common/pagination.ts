@@ -5,6 +5,11 @@ export interface PaginatedResult<T> {
   total: number;
 }
 
-export function toPaginatedResult<T>(data: T[], total: number, page: number, pageSize: number): PaginatedResult<T> {
+export function toPaginatedResult<T>(
+  data: T[],
+  total: number,
+  page: number,
+  pageSize: number,
+): PaginatedResult<T> {
   return { data, total, page, pageSize };
 }

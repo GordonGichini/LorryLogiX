@@ -1,5 +1,13 @@
-import { AssetStatus, RecordStatus } from '@prisma/client';
-import { IsDateString, IsEnum, IsOptional, IsString, IsUUID, Length, Matches } from 'class-validator';
+import { AssetStatus, RecordStatus } from "@prisma/client";
+import {
+  IsDateString,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Length,
+  Matches,
+} from "class-validator";
 
 export class CreateClientDto {
   @IsString() @Length(2, 120) name!: string;

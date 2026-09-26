@@ -1,5 +1,13 @@
-import { ContractStatus } from '@prisma/client';
-import { IsDateString, IsEnum, IsOptional, IsString, IsUUID, Length, Matches } from 'class-validator';
+import { ContractStatus } from "@prisma/client";
+import {
+  IsDateString,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Length,
+  Matches,
+} from "class-validator";
 
 export class CreateContractDto {
   @IsUUID() clientId!: string;

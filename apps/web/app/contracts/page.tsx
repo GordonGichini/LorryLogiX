@@ -6,7 +6,10 @@ export default async function ContractsPage() {
 
   return (
     <div>
-      <PageHeader title="Contracts" description="Commercial relationship and route pricing snapshot." />
+      <PageHeader
+        title="Contracts"
+        description="Commercial relationship and route pricing snapshot."
+      />
       <div className="data-panel">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
@@ -22,15 +25,21 @@ export default async function ContractsPage() {
             <tbody className="divide-y divide-slate-200">
               {contracts.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-slate-500">No contracts found.</td>
+                  <td colSpan={5} className="px-4 py-6 text-slate-500">
+                    No contracts found.
+                  </td>
                 </tr>
               ) : (
                 contracts.map((contract) => (
                   <tr key={contract.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900">{contract.client?.name ?? contract.clientId}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900">
+                      {contract.client?.name ?? contract.clientId}
+                    </td>
                     <td className="px-4 py-3">{contract.reference}</td>
                     <td className="px-4 py-3">{contract.status}</td>
-                    <td className="px-4 py-3">{new Date(contract.startsOn).toLocaleDateString()}</td>
+                    <td className="px-4 py-3">
+                      {new Date(contract.startsOn).toLocaleDateString()}
+                    </td>
                     <td className="px-4 py-3">{contract.routes.length}</td>
                   </tr>
                 ))

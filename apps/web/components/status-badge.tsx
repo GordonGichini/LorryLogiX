@@ -17,7 +17,9 @@ const toneMap: Record<string, string> = {
 export function StatusBadge({ value }: { value: string }) {
   const tone = toneMap[value] ?? "bg-[#e1e5e8] text-[#687582] ring-[#ccd5dc]";
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${tone}`}>
+    <span
+      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${tone}`}
+    >
       {value.replace(/_/g, " ")}
     </span>
   );

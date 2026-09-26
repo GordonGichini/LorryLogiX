@@ -1,4 +1,11 @@
-import { PrismaClient, RecordStatus, ContractStatus, AssetStatus, TripStatus, FinancialPartyType } from '@prisma/client';
+import {
+  PrismaClient,
+  RecordStatus,
+  ContractStatus,
+  AssetStatus,
+  TripStatus,
+  FinancialPartyType,
+} from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -42,15 +49,27 @@ async function ensureDriver(fullName, phoneNumber) {
   });
 }
 
-async function ensureContract(clientId, reference, startsOn, endsOn, cargoDefault = 'Lime mineral') {
+async function ensureContract(
+  clientId,
+  reference,
+  startsOn,
+  endsOn,
+  cargoDefault = "Lime mineral",
+) {
   return prisma.contract.upsert({
     where: { reference },
-    update: { clientId, startsOn: isoDate(startsOn), endsOn: endsOn ? isoDate(endsOn) : null, cargoDefault, status: ContractStatus.ACTIVE },
+    update: {
+      clientId,
+      startsOn: isoDate(startsOn),
+      endsOn: endsOn ? isoDate(endsOn) : null,
+      cargoDefault,
+      status: ContractStatus.ACTIVE,
+    },
     create: {
       clientId,
       reference,
       cargoDefault,
-      currency: 'KES',
+      currency: "KES",
       startsOn: isoDate(startsOn),
       endsOn: endsOn ? isoDate(endsOn) : null,
       status: ContractStatus.ACTIVE,
@@ -58,7 +77,13 @@ async function ensureContract(clientId, reference, startsOn, endsOn, cargoDefaul
   });
 }
 
-async function ensureContractRoute(contractId, routeId, rate, activeFrom, activeTo = null) {
+async function ensureContractRoute(
+  contractId,
+  routeId,
+  rate,
+  activeFrom,
+  activeTo = null,
+) {
   const existing = await prisma.contractRoute.findFirst({
     where: {
       contractId,
@@ -73,7 +98,7 @@ async function ensureContractRoute(contractId, routeId, rate, activeFrom, active
       contractId,
       routeId,
       rate,
-      currency: 'KES',
+      currency: "KES",
       activeFrom: isoDate(activeFrom),
       activeTo: activeTo ? isoDate(activeTo) : null,
     },
@@ -81,7 +106,9 @@ async function ensureContractRoute(contractId, routeId, rate, activeFrom, active
 }
 
 async function ensureFuelPolicy(contractId, name, cycleStartDate) {
-  const policy = await prisma.fuelCoveragePolicy.findFirst({ where: { contractId, name } });
+  const policy = await prisma.fuelCoveragePolicy.findFirst({
+    where: { contractId, name },
+  });
   if (policy) return policy;
 
   return prisma.fuelCoveragePolicy.create({
@@ -100,19 +127,42 @@ async function ensureFuelPolicy(contractId, name, cycleStartDate) {
 async function ensureFuelPeriods(policyId) {
   const existingPeriods = await prisma.fuelCoveragePeriod.findMany({
     where: { policyId },
-    orderBy: { periodNumber: 'asc' },
+    orderBy: { periodNumber: "asc" },
   });
 
   if (existingPeriods.length > 0) return existingPeriods;
 
-  const policy = await prisma.fuelCoveragePolicy.findUnique({ where: { id: policyId } });
-  if (!policy) throw new Error('Fuel policy not found while generating periods');
+  const policy = await prisma.fuelCoveragePolicy.findUnique({
+    where: { id: policyId },
+  });
+  if (!policy)
+    throw new Error("Fuel policy not found while generating periods");
 
   const periodEntries = [
-    { periodNumber: 1, periodStart: '2026-01-01', periodEnd: '2026-01-31', responsibleParty: FinancialPartyType.OPERATOR },
-    { periodNumber: 2, periodStart: '2026-02-01', periodEnd: '2026-02-28', responsibleParty: FinancialPartyType.OPERATOR },
-    { periodNumber: 3, periodStart: '2026-03-01', periodEnd: '2026-03-31', responsibleParty: FinancialPartyType.OPERATOR },
-    { periodNumber: 4, periodStart: '2026-04-01', periodEnd: '2026-04-30', responsibleParty: FinancialPartyType.CLIENT },
+    {
+      periodNumber: 1,
+      periodStart: "2026-01-01",
+      periodEnd: "2026-01-31",
+      responsibleParty: FinancialPartyType.OPERATOR,
+    },
+    {
+      periodNumber: 2,
+      periodStart: "2026-02-01",
+      periodEnd: "2026-02-28",
+      responsibleParty: FinancialPartyType.OPERATOR,
+    },
+    {
+      periodNumber: 3,
+      periodStart: "2026-03-01",
+      periodEnd: "2026-03-31",
+      responsibleParty: FinancialPartyType.OPERATOR,
+    },
+    {
+      periodNumber: 4,
+      periodStart: "2026-04-01",
+      periodEnd: "2026-04-30",
+      responsibleParty: FinancialPartyType.CLIENT,
+    },
   ];
 
   for (const period of periodEntries) {
@@ -128,7 +178,10 @@ async function ensureFuelPeriods(policyId) {
     });
   }
 
-  return prisma.fuelCoveragePeriod.findMany({ where: { policyId }, orderBy: { periodNumber: 'asc' } });
+  return prisma.fuelCoveragePeriod.findMany({
+    where: { policyId },
+    orderBy: { periodNumber: "asc" },
+  });
 }
 
 async function ensureTrip(contractRouteId, lorryId, driverId, occurredAt) {
@@ -148,53 +201,83 @@ async function ensureTrip(contractRouteId, lorryId, driverId, occurredAt) {
       lorryId,
       driverId,
       occurredAt: isoDate(occurredAt),
-      cargoDescription: 'Lime mineral',
-      cargoQuantity: '10',
-      cargoUnit: 'tonnes',
-      agreedRate: '25000',
-      currency: 'KES',
+      cargoDescription: "Lime mineral",
+      cargoQuantity: "10",
+      cargoUnit: "tonnes",
+      agreedRate: "25000",
+      currency: "KES",
       status: TripStatus.PLANNED,
-      notes: 'Seeded operational trip for Nevila route coverage.',
+      notes: "Seeded operational trip for Nevila route coverage.",
     },
   });
 }
 
 async function main() {
-  const client = await ensureClient('Nevila');
+  const client = await ensureClient("Nevila");
 
-  const industrialArea = await ensureRoute('Kumpar', 'Industrial Area');
-  const thika = await ensureRoute('Kumpar', 'Thika');
-  const ngong = await ensureRoute('Kumpar', 'Ngong');
+  const industrialArea = await ensureRoute("Kumpar", "Industrial Area");
+  const thika = await ensureRoute("Kumpar", "Thika");
+  const ngong = await ensureRoute("Kumpar", "Ngong");
 
-  const lorry = await ensureAsset('KBL 200A', 'Big Canter - operational');
-  const driver = await ensureDriver('John Kamau', '+254700000001');
+  const lorry = await ensureAsset("KBL 200A", "Big Canter - operational");
+  const driver = await ensureDriver("John Kamau", "+254700000001");
 
-  const contract = await ensureContract(client.id, 'NVL-2026-001', '2026-01-01', '2026-12-31', 'Lime mineral');
+  const contract = await ensureContract(
+    client.id,
+    "NVL-2026-001",
+    "2026-01-01",
+    "2026-12-31",
+    "Lime mineral",
+  );
 
-  await ensureContractRoute(contract.id, industrialArea.id, '19000', '2026-01-01', '2026-12-31');
-  await ensureContractRoute(contract.id, thika.id, '25000', '2026-01-01', '2026-12-31');
-  await ensureContractRoute(contract.id, ngong.id, '25000', '2026-01-01', '2026-12-31');
+  await ensureContractRoute(
+    contract.id,
+    industrialArea.id,
+    "19000",
+    "2026-01-01",
+    "2026-12-31",
+  );
+  await ensureContractRoute(
+    contract.id,
+    thika.id,
+    "25000",
+    "2026-01-01",
+    "2026-12-31",
+  );
+  await ensureContractRoute(
+    contract.id,
+    ngong.id,
+    "25000",
+    "2026-01-01",
+    "2026-12-31",
+  );
 
-  const policy = await ensureFuelPolicy(contract.id, 'Nevila fuel cycle', '2026-01-01');
+  const policy = await ensureFuelPolicy(
+    contract.id,
+    "Nevila fuel cycle",
+    "2026-01-01",
+  );
   await ensureFuelPeriods(policy.id);
 
   const contractRoutes = await prisma.contractRoute.findMany({
     where: { contractId: contract.id },
     include: { route: true },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: "asc" },
   });
 
-  const thikaRoute = contractRoutes.find((route) => route.route.destination === 'Thika');
+  const thikaRoute = contractRoutes.find(
+    (route) => route.route.destination === "Thika",
+  );
   if (thikaRoute) {
-    await ensureTrip(thikaRoute.id, lorry.id, driver.id, '2026-09-15');
+    await ensureTrip(thikaRoute.id, lorry.id, driver.id, "2026-09-15");
   }
 
-  console.log('Seeded LorryLogix demo data for Nevila and Kumpar routes.');
+  console.log("Seeded LorryLogix demo data for Nevila and Kumpar routes.");
 }
 
 main()
   .catch((error) => {
-    console.error('Seed failed:', error);
+    console.error("Seed failed:", error);
     process.exit(1);
   })
   .finally(async () => {

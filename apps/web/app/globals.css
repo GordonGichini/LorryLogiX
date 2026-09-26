@@ -33,7 +33,15 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
-  background-image: linear-gradient(115deg, rgba(255, 255, 255, 0.42), transparent 42%), repeating-linear-gradient(0deg, rgba(47, 67, 86, 0.025) 0, rgba(47, 67, 86, 0.025) 1px, transparent 1px, transparent 5px);
+  background-image:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.42), transparent 42%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(47, 67, 86, 0.025) 0,
+      rgba(47, 67, 86, 0.025) 1px,
+      transparent 1px,
+      transparent 5px
+    );
 }
 
 a {

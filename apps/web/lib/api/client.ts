@@ -1,6 +1,10 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
-export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function apiFetch<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
   const normalizedBase = API_BASE_URL.replace(/\/$/, "");
   const target = new URL(path, `${normalizedBase}/`);
 
@@ -8,7 +12,9 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
     ...init,
     headers: {
       Accept: "application/json",
-      ...(init.body && !(init.headers instanceof Headers) ? { "Content-Type": "application/json" } : {}),
+      ...(init.body && !(init.headers instanceof Headers)
+        ? { "Content-Type": "application/json" }
+        : {}),
       ...(init.headers ?? {}),
     },
     cache: init.cache ?? "no-store",
@@ -20,7 +26,10 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
 
   if (!response.ok) {
     const message =
-      typeof data === "object" && data && "message" in data && typeof data.message === "string"
+      typeof data === "object" &&
+      data &&
+      "message" in data &&
+      typeof data.message === "string"
         ? data.message
         : "The server could not complete the request.";
     throw new Error(message);

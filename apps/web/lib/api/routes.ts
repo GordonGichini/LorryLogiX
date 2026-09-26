@@ -16,18 +16,33 @@ export type RoutePayload = {
 };
 
 export async function createRoute(payload: RoutePayload): Promise<Route> {
-  return apiFetch<Route>("/routes", { method: "POST", body: JSON.stringify(payload) });
+  return apiFetch<Route>("/routes", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
-export async function updateRoute(id: string, payload: Pick<RoutePayload, "origin" | "destination">): Promise<Route> {
-  return apiFetch<Route>(`/routes/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
+export async function updateRoute(
+  id: string,
+  payload: Pick<RoutePayload, "origin" | "destination">,
+): Promise<Route> {
+  return apiFetch<Route>(`/routes/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function deactivateRoute(id: string): Promise<Route> {
   return apiFetch<Route>(`/routes/${id}`, { method: "DELETE" });
 }
 
-export async function updateRoutePricing(routeId: string, payload: Required<Pick<RoutePayload, "contractId" | "rate" | "activeFrom">> & Pick<RoutePayload, "currency" | "activeTo">): Promise<unknown> {
-  return apiFetch(`/routes/${routeId}/pricing`, { method: "PATCH", body: JSON.stringify(payload) });
+export async function updateRoutePricing(
+  routeId: string,
+  payload: Required<Pick<RoutePayload, "contractId" | "rate" | "activeFrom">> &
+    Pick<RoutePayload, "currency" | "activeTo">,
+): Promise<unknown> {
+  return apiFetch(`/routes/${routeId}/pricing`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
 }
-
