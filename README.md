@@ -159,6 +159,18 @@ Current seed/demo route relationships include:
 
 Additional destinations are created through the UI and are not hard-coded.
 
+### Current Route lifecycle status
+
+The current route lifecycle is modelled with a soft-deactivation pattern:
+
+```text
+ACTIVE -> INACTIVE
+```
+
+The lifecycle is implemented at the database and service level using the `RecordStatus` enum and `Route.status` column. The service uses `DELETE /routes/:id` as a soft-deactivate operation rather than a hard delete.
+
+This means historical data remains available, but the current application still needs to consistently enforce route-status checks in downstream modules such as trip creation.
+
 ## Implemented Route CRUD
 
 The Routes page currently supports:
@@ -178,12 +190,14 @@ The Routes page currently supports:
 Current route endpoints:
 
 ```text
-GET    /routes
+GET    /routes?page=1&pageSize=20&status=ACTIVE&search=Kumpar
 POST   /routes
 PATCH  /routes/:id
 PATCH  /routes/:id/pricing
 DELETE /routes/:id       # soft-deactivates; does not hard-delete
 ```
+
+The `GET /routes` endpoint now supports server-side pagination and optional `status` and `search` filtering. The response contract is a paginated result with `data`, `page`, `pageSize`, `total`, and `totalPages`.
 
 Contract pricing can also be managed through the existing contract boundary:
 

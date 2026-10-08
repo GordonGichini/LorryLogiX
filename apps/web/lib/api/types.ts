@@ -48,6 +48,7 @@ export interface RoutePricing {
   };
 }
 
+
 export interface Asset {
   id: string;
   registration: string;

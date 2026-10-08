@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { toPaginatedResult } from "../common/pagination";
 import { PrismaService } from "../prisma/prisma.service";
 import {
   CreateAssetDto,
@@ -14,6 +15,7 @@ import {
   UpdateRouteDto,
   UpdateRoutePricingDto,
 } from "./dto/create-master-data.dto";
+import { RouteListQueryDto } from "./dto/route-query.dto";
 
 @Injectable()
 export class MasterDataService {
@@ -220,15 +222,38 @@ export class MasterDataService {
       });
     });
   }
-  listRoutes() {
-    return this.prisma.route.findMany({
-      include: {
-        contracts: {
-          orderBy: { activeFrom: "desc" },
-          include: { contract: { include: { client: true } } },
+  async listRoutes(query: RouteListQueryDto) {
+    const status = query.status === "ALL" ? undefined : query.status;
+    const search = query.search?.trim();
+    const where: Prisma.RouteWhereInput = {};
+
+    if (status) {
+      where.status = status;
+    }
+
+    if (search) {
+      where.OR = [
+        { origin: { contains: search, mode: "insensitive" } },
+        { destination: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.route.findMany({
+        where,
+        include: {
+          contracts: {
+            orderBy: { activeFrom: "desc" },
+            include: { contract: { include: { client: true } } },
+          },
         },
-      },
-      orderBy: [{ origin: "asc" }, { destination: "asc" }],
-    });
+        orderBy: [{ origin: "asc" }, { destination: "asc" }],
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+      }),
+      this.prisma.route.count({ where }),
+    ]);
+
+    return toPaginatedResult(data, total, query.page, query.pageSize);
   }
 }

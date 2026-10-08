@@ -1,8 +1,27 @@
 import { apiFetch } from "./client";
-import type { Route } from "./types";
+import type { PaginatedResponse, Route } from "./types";
 
-export async function getRoutes(): Promise<Route[]> {
-  return apiFetch<Route[]>("/routes");
+export type RouteListParams = {
+  page?: number;
+  pageSize?: number;
+  status?: "ACTIVE" | "INACTIVE" | "ALL";
+  search?: string;
+};
+
+export async function getRoutes(
+  params: RouteListParams = {},
+): Promise<Route[]> {
+  const query = new URLSearchParams();
+  if (params.page) query.set("page", String(params.page));
+  if (params.pageSize) query.set("pageSize", String(params.pageSize));
+  if (params.status && params.status !== "ALL") query.set("status", params.status);
+  if (params.search) query.set("search", params.search);
+
+  const response = await apiFetch<PaginatedResponse<Route>>(
+    `/routes${query.toString() ? `?${query.toString()}` : ""}`,
+  );
+
+  return response.data ?? [];
 }
 
 export type RoutePayload = {

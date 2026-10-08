@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from "@nestjs/common";
 import {
   CreateAssetDto,
@@ -15,6 +16,7 @@ import {
   UpdateRouteDto,
   UpdateRoutePricingDto,
 } from "./dto/create-master-data.dto";
+import { RouteListQueryDto } from "./dto/route-query.dto";
 import { MasterDataService } from "./master-data.service";
 
 @Controller()
@@ -56,7 +58,7 @@ export class MasterDataController {
   @Delete("routes/:id") deactivateRoute(@Param("id") id: string) {
     return this.service.deactivateRoute(id);
   }
-  @Get("routes") listRoutes() {
-    return this.service.listRoutes();
+  @Get("routes") listRoutes(@Query() query: RouteListQueryDto) {
+    return this.service.listRoutes(query);
   }
 }

@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { Prisma, TripStatus } from "@prisma/client";
+import { Prisma, RecordStatus, TripStatus } from "@prisma/client";
 import { toPaginatedResult } from "../common/pagination";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateTripDto, TripListQueryDto } from "./dto/trip.dto";
@@ -42,6 +42,18 @@ export class TripsService {
     if (!asset) throw new NotFoundException("Lorry asset not found.");
     if (dto.driverId && !driver)
       throw new NotFoundException("Driver not found.");
+
+    const route = await this.prisma.route.findUnique({
+      where: { id: contractRoute.routeId },
+    });
+    if (!route) {
+      throw new NotFoundException("Route not found for the selected contract route.");
+    }
+    if (route.status === RecordStatus.INACTIVE) {
+      throw new BadRequestException(
+        "Cannot create a trip for an inactive route.",
+      );
+    }
     const occurredAt = new Date(dto.occurredAt);
     if (
       occurredAt < contractRoute.activeFrom ||
