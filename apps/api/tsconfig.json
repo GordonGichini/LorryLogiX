@@ -10,8 +10,7 @@
     "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
-    "incremental": true
+    "rootDir": "./src"
   },
   "include": ["src/**/*.ts", "test/**/*.ts"]
 }
