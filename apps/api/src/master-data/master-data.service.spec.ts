@@ -1,10 +1,26 @@
 import { BadRequestException, ConflictException, NotFoundException } from "@nestjs/common";
 import { RecordStatus } from "@prisma/client";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { PrismaService } from "../prisma/prisma.service";
 import { MasterDataService } from "./master-data.service";
 
+type MockMethod = ReturnType<typeof jest.fn>;
+type PrismaMock = {
+  route: {
+    findUnique: MockMethod;
+    create: MockMethod;
+    update: MockMethod;
+    findMany: MockMethod;
+    count: MockMethod;
+    findUniqueOrThrow: MockMethod;
+  };
+  contract: { findUnique: MockMethod };
+  contractRoute: { create: MockMethod; update: MockMethod };
+  $transaction: MockMethod;
+};
+
 describe("MasterDataService routes", () => {
-  let prisma: any;
+  let prisma: PrismaMock;
   let service: MasterDataService;
 
   beforeEach(() => {
@@ -27,13 +43,17 @@ describe("MasterDataService routes", () => {
       $transaction: jest.fn(),
     };
 
-    service = new MasterDataService(prisma);
+    service = new MasterDataService(prisma as unknown as PrismaService);
   });
 
   it("creates a route when the payload is valid", async () => {
     prisma.route.findUnique.mockResolvedValue(null);
     prisma.$transaction.mockImplementation(
-      async (callback: (tx: typeof prisma) => Promise<unknown>) =>
+      async (
+        callback: (
+          tx: Pick<PrismaMock, "route" | "contract" | "contractRoute">,
+        ) => Promise<unknown>,
+      ) =>
         callback({
           route: prisma.route,
           contract: prisma.contract,

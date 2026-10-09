@@ -1,20 +1,31 @@
 import { PageHeader } from "../../components/page-header";
+import { TripCreateForm } from "../../components/trip-create-form";
+import { getAssets } from "../../lib/api/assets";
+import { getDrivers } from "../../lib/api/drivers";
 import { getTrips } from "../../lib/api/trips";
 
 export default async function TripsPage() {
-  const trips = await getTrips({ page: 1, pageSize: 20 }).catch(() => ({
-    data: [],
-    total: 0,
-    page: 1,
-    pageSize: 20,
-    totalPages: 0,
-  }));
+  const [trips, assets, drivers] = await Promise.all([
+    getTrips({ page: 1, pageSize: 20 }).catch(() => ({
+      data: [],
+      total: 0,
+      page: 1,
+      pageSize: 20,
+      totalPages: 0,
+    })),
+    getAssets({ page: 1, pageSize: 100, status: "ACTIVE" }).catch(() => ({ data: [] })),
+    getDrivers({ page: 1, pageSize: 100, status: "ACTIVE" }).catch(() => ({ data: [] })),
+  ]);
 
   return (
     <div>
       <PageHeader
         title="Trips"
         description="Operational trip list with the historical agreed rate snapshot."
+      />
+      <TripCreateForm
+        assets={assets.data}
+        drivers={drivers.data}
       />
       <div className="data-panel">
         <div className="overflow-x-auto">

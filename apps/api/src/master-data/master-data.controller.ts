@@ -13,9 +13,13 @@ import {
   CreateClientDto,
   CreateDriverDto,
   CreateRouteDto,
+  UpdateAssetDto,
+  UpdateDriverDto,
   UpdateRouteDto,
   UpdateRoutePricingDto,
 } from "./dto/create-master-data.dto";
+import { AssetListQueryDto } from "./dto/asset-query.dto";
+import { DriverListQueryDto } from "./dto/driver-query.dto";
 import { RouteListQueryDto } from "./dto/route-query.dto";
 import { MasterDataService } from "./master-data.service";
 
@@ -31,14 +35,38 @@ export class MasterDataController {
   @Post("assets") createAsset(@Body() dto: CreateAssetDto) {
     return this.service.createAsset(dto);
   }
-  @Get("assets") listAssets() {
-    return this.service.listAssets();
+  @Get("assets") listAssets(@Query() query: AssetListQueryDto) {
+    return this.service.listAssets(query);
+  }
+  @Get("assets/:id") getAsset(@Param("id") id: string) {
+    return this.service.getAsset(id);
+  }
+  @Patch("assets/:id") updateAsset(
+    @Param("id") id: string,
+    @Body() dto: UpdateAssetDto,
+  ) {
+    return this.service.updateAsset(id, dto);
+  }
+  @Delete("assets/:id") deactivateAsset(@Param("id") id: string) {
+    return this.service.deactivateAsset(id);
   }
   @Post("drivers") createDriver(@Body() dto: CreateDriverDto) {
     return this.service.createDriver(dto);
   }
-  @Get("drivers") listDrivers() {
-    return this.service.listDrivers();
+  @Get("drivers") listDrivers(@Query() query: DriverListQueryDto) {
+    return this.service.listDrivers(query);
+  }
+  @Get("drivers/:id") getDriver(@Param("id") id: string) {
+    return this.service.getDriver(id);
+  }
+  @Patch("drivers/:id") updateDriver(
+    @Param("id") id: string,
+    @Body() dto: UpdateDriverDto,
+  ) {
+    return this.service.updateDriver(id, dto);
+  }
+  @Delete("drivers/:id") deactivateDriver(@Param("id") id: string) {
+    return this.service.deactivateDriver(id);
   }
   @Post("routes") createRoute(@Body() dto: CreateRouteDto) {
     return this.service.createRoute(dto);

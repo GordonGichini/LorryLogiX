@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { Prisma, RecordStatus, TripStatus } from "@prisma/client";
+import { AssetStatus, Prisma, RecordStatus, TripStatus } from "@prisma/client";
 import { toPaginatedResult } from "../common/pagination";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateTripDto, TripListQueryDto } from "./dto/trip.dto";
@@ -42,6 +42,16 @@ export class TripsService {
     if (!asset) throw new NotFoundException("Lorry asset not found.");
     if (dto.driverId && !driver)
       throw new NotFoundException("Driver not found.");
+    if (asset.status !== AssetStatus.ACTIVE) {
+      throw new BadRequestException(
+        "A trip can only be assigned to an active lorry.",
+      );
+    }
+    if (driver && driver.status !== RecordStatus.ACTIVE) {
+      throw new BadRequestException(
+        "A trip can only be assigned to an active driver.",
+      );
+    }
 
     const route = await this.prisma.route.findUnique({
       where: { id: contractRoute.routeId },

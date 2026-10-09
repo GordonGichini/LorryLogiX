@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { Prisma, RecordStatus } from "@prisma/client";
+import { AssetStatus, Prisma, RecordStatus } from "@prisma/client";
 import { toPaginatedResult } from "../common/pagination";
 import { getInactiveRoutePricingCloseDate } from "../common/route-pricing-policy";
 import { PrismaService } from "../prisma/prisma.service";
@@ -13,9 +13,13 @@ import {
   CreateClientDto,
   CreateDriverDto,
   CreateRouteDto,
+  UpdateAssetDto,
+  UpdateDriverDto,
   UpdateRouteDto,
   UpdateRoutePricingDto,
 } from "./dto/create-master-data.dto";
+import { AssetListQueryDto } from "./dto/asset-query.dto";
+import { DriverListQueryDto } from "./dto/driver-query.dto";
 import { RouteListQueryDto } from "./dto/route-query.dto";
 
 @Injectable()
@@ -27,17 +31,157 @@ export class MasterDataService {
   listClients() {
     return this.prisma.client.findMany({ orderBy: { name: "asc" } });
   }
-  createAsset(dto: CreateAssetDto) {
-    return this.prisma.asset.create({ data: dto });
+  async createAsset(dto: CreateAssetDto) {
+    try {
+      return await this.prisma.asset.create({ data: dto });
+    } catch (error) {
+      this.throwIfUniqueConstraint(error, "An asset with this registration already exists.");
+      throw error;
+    }
   }
-  listAssets() {
-    return this.prisma.asset.findMany({ orderBy: { registration: "asc" } });
+  async listAssets(query: AssetListQueryDto) {
+    const where: Prisma.AssetWhereInput = {};
+    const search = query.search?.trim();
+    if (query.status) where.status = query.status;
+    if (search) {
+      where.OR = [
+        { registration: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
+    }
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.asset.findMany({
+        where,
+        orderBy: [{ registration: "asc" }, { id: "asc" }],
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+        select: {
+          id: true,
+          registration: true,
+          description: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      this.prisma.asset.count({ where }),
+    ]);
+    return toPaginatedResult(data, total, query.page, query.pageSize);
   }
-  createDriver(dto: CreateDriverDto) {
-    return this.prisma.driver.create({ data: dto });
+  async getAsset(id: string) {
+    const asset = await this.prisma.asset.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        registration: true,
+        description: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: { select: { trips: true, maintenance: true, documents: true } },
+      },
+    });
+    if (!asset) throw new NotFoundException("Asset not found.");
+    return asset;
   }
-  listDrivers() {
-    return this.prisma.driver.findMany({ orderBy: { fullName: "asc" } });
+  async updateAsset(id: string, dto: UpdateAssetDto) {
+    await this.ensureAssetExists(id);
+    try {
+      return await this.prisma.asset.update({ where: { id }, data: dto });
+    } catch (error) {
+      this.throwIfUniqueConstraint(error, "An asset with this registration already exists.");
+      throw error;
+    }
+  }
+  async deactivateAsset(id: string) {
+    await this.ensureAssetExists(id);
+    return this.prisma.asset.update({
+      where: { id },
+      data: { status: AssetStatus.INACTIVE },
+    });
+  }
+  async createDriver(dto: CreateDriverDto) {
+    try {
+      return await this.prisma.driver.create({ data: dto });
+    } catch (error) {
+      this.throwIfUniqueConstraint(error, "A driver with this phone number already exists.");
+      throw error;
+    }
+  }
+  async listDrivers(query: DriverListQueryDto) {
+    const where: Prisma.DriverWhereInput = {};
+    const search = query.search?.trim();
+    if (query.status) where.status = query.status;
+    if (search) {
+      where.OR = [
+        { fullName: { contains: search, mode: "insensitive" } },
+      ];
+    }
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.driver.findMany({
+        where,
+        orderBy: [{ fullName: "asc" }, { id: "asc" }],
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+        select: {
+          id: true,
+          fullName: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      this.prisma.driver.count({ where }),
+    ]);
+    return toPaginatedResult(data, total, query.page, query.pageSize);
+  }
+  async getDriver(id: string) {
+    const driver = await this.prisma.driver.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        fullName: true,
+        phoneNumber: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: { select: { trips: true } },
+      },
+    });
+    if (!driver) throw new NotFoundException("Driver not found.");
+    return driver;
+  }
+  async updateDriver(id: string, dto: UpdateDriverDto) {
+    await this.ensureDriverExists(id);
+    try {
+      return await this.prisma.driver.update({ where: { id }, data: dto });
+    } catch (error) {
+      this.throwIfUniqueConstraint(error, "A driver with this phone number already exists.");
+      throw error;
+    }
+  }
+  async deactivateDriver(id: string) {
+    await this.ensureDriverExists(id);
+    return this.prisma.driver.update({
+      where: { id },
+      data: { status: RecordStatus.INACTIVE },
+    });
+  }
+  private async ensureAssetExists(id: string): Promise<void> {
+    const asset = await this.prisma.asset.findUnique({ where: { id }, select: { id: true } });
+    if (!asset) throw new NotFoundException("Asset not found.");
+  }
+  private async ensureDriverExists(id: string): Promise<void> {
+    const driver = await this.prisma.driver.findUnique({ where: { id }, select: { id: true } });
+    if (!driver) throw new NotFoundException("Driver not found.");
+  }
+  private throwIfUniqueConstraint(error: unknown, message: string): void {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new ConflictException(message);
+    }
   }
   async createRoute(dto: CreateRouteDto) {
     const hasPricing =

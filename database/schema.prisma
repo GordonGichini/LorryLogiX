@@ -98,6 +98,7 @@ model Asset {
   maintenance  MaintenanceRecord[]
   documents    AssetDocument[]
   assignments  DriverAssignment[]
+  @@index([status, registration])
   @@map("assets")
 }
 
@@ -110,6 +111,7 @@ model Driver {
   updatedAt   DateTime     @updatedAt @map("updated_at")
   trips       Trip[]
   assignments DriverAssignment[]
+  @@index([status, fullName])
   @@map("drivers")
 }
 

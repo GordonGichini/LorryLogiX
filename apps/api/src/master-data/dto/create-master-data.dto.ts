@@ -17,10 +17,21 @@ export class CreateAssetDto {
   @IsString() @Length(2, 200) description!: string;
   @IsOptional() @IsEnum(AssetStatus) status?: AssetStatus;
 }
+export class UpdateAssetDto {
+  @IsOptional() @IsString() @Length(2, 40) registration?: string;
+  @IsOptional() @IsString() @Length(2, 200) description?: string;
+}
 export class CreateDriverDto {
   @IsString() @Length(2, 120) fullName!: string;
   @IsOptional() @IsString() @Matches(/^\+?[0-9 -]{7,20}$/) phoneNumber?: string;
   @IsOptional() @IsEnum(RecordStatus) status?: RecordStatus;
+}
+export class UpdateDriverDto {
+  @IsOptional() @IsString() @Length(2, 120) fullName?: string;
+  @IsOptional()
+  @IsString()
+  @Matches(/^\+?[0-9 -]{7,20}$/)
+  phoneNumber?: string | null;
 }
 export class CreateRouteDto {
   @IsString() @Length(2, 120) origin!: string;

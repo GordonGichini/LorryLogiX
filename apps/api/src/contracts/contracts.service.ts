@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { toPaginatedResult } from "../common/pagination";
 import { getInactiveRoutePricingCloseDate } from "../common/route-pricing-policy";
 import { PrismaService } from "../prisma/prisma.service";
 import {
@@ -11,6 +12,7 @@ import {
   CreateContractRouteDto,
   UpdateContractRouteDto,
 } from "./dto/create-contract.dto";
+import { ContractRouteListQueryDto } from "./dto/contract-route-query.dto";
 
 @Injectable()
 export class ContractsService {
@@ -39,6 +41,27 @@ export class ContractsService {
       },
       orderBy: { startsOn: "desc" },
     });
+  }
+  async listRoutesForTrip(query: ContractRouteListQueryDto) {
+    const activeOn = new Date(query.activeOn);
+    const where: Prisma.ContractRouteWhereInput = {
+      activeFrom: { lte: activeOn },
+      AND: [
+        { OR: [{ activeTo: null }, { activeTo: { gte: activeOn } }] },
+        { route: { is: { status: RecordStatus.ACTIVE } } },
+      ],
+    };
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.contractRoute.findMany({
+        where,
+        orderBy: [{ activeFrom: "desc" }, { id: "asc" }],
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+        include: { route: true, contract: { include: { client: true } } },
+      }),
+      this.prisma.contractRoute.count({ where }),
+    ]);
+    return toPaginatedResult(data, total, query.page, query.pageSize);
   }
   async addRoute(contractId: string, dto: CreateContractRouteDto) {
     const contract = await this.prisma.contract.findUnique({

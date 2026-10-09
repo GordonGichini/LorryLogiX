@@ -6,7 +6,19 @@ Plan indexes from access patterns.
 
 ## Concept and application
 
-Likely Phase 2 indexes include Trip by contract-route/date, Trip by lorry/date, FuelObligation by status and coverage period, and unique policy/period number. Foreign-key columns used in joins commonly need indexes.
+Implemented indexes include:
+
+- unique Asset registration
+- Asset `(status, registration)` for status-filtered ordered lists
+- unique non-null Driver phone number
+- Driver `(status, fullName)` for status-filtered ordered lists
+- Trip `(lorryId, occurredAt)`, `(contractRouteId, occurredAt)`, and `(status, occurredAt)`
+
+The Asset and Driver composite indexes support B-tree equality filtering by
+status followed by stable ordering. Case-insensitive substring matching uses
+contains patterns and is not accelerated by these indexes. Consider PostgreSQL
+trigram indexes only after measuring representative search latency and data
+volume.
 
 ## Why it matters and trade-offs
 

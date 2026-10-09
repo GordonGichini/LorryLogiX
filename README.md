@@ -169,7 +169,23 @@ ACTIVE -> INACTIVE
 
 The lifecycle is implemented at the database and service level using the `RecordStatus` enum and `Route.status` column. The service uses `DELETE /routes/:id` as a soft-deactivate operation rather than a hard delete.
 
-This means historical data remains available, but the current application still needs to consistently enforce route-status checks in downstream modules such as trip creation.
+Trip creation rejects inactive routes. Contract pricing cannot be added or reassigned for an inactive route; existing pricing history can only be closed by shortening its end date.
+
+## Assets and Drivers
+
+The Assets and Drivers pages support create, paginated/searchable list, detail,
+partial update, and soft deactivation using the existing schema fields. Assets
+contain registration, description, and `ACTIVE`/`INACTIVE`/`UNDER_MAINTENANCE`
+status. Drivers contain full name, optional phone number, and
+`ACTIVE`/`INACTIVE` status. No speculative licence, VIN, insurance, or
+ownership fields have been added.
+
+Trip creation only accepts active assets and active drivers (driver remains
+optional). Deactivation preserves existing Trip relationships. Asset and
+Driver list responses use the shared paginated response shape; driver phone
+is excluded from list responses and only included in detail responses.
+Authentication and authorization are not implemented, so only synthetic
+driver phone values should be used during development.
 
 ## Implemented Route CRUD
 
@@ -338,16 +354,18 @@ The seed is idempotent for its known records. The requested delivery notes, expe
 - Contract-specific route pricing synchronization
 - Route status migration
 - Route status filtering and sorting
+- Asset and Driver create/list/detail/update/deactivation flows with server-side pagination
+- Trip creation UI with active asset/driver selection and effective active route pricing
+- Backend trip rejection for inactive routes, assets, and drivers
 - API and web production builds
 
 ## Current In Progress
 
-The next implementation phase is master-data CRUD using the route-management pattern:
+Remaining master-data and operational workflows include:
 
 - Client add/edit/deactivate UI
-- Lorry/asset add/edit/deactivate UI
-- Driver add/edit and lorry assignment UI
-- Clear mutation feedback and refetch behavior
+- Explicit driver-to-lorry assignment workflow, if confirmed as a business requirement
+- Asset/driver reactivation workflows, if required
 
 ## Remaining Product Work
 
@@ -358,7 +376,7 @@ The next implementation phase is master-data CRUD using the route-management pat
 - Require receiver signature before delivery
 - Add delivery note number and delivery date to the trip table
 - Enforce tonnage greater than zero and at most 11 tonnes
-- Add trip create/edit/status UI
+- Add trip edit/status UI and delivery-note-driven transitions
 
 ### Fuel
 

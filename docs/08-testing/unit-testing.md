@@ -6,7 +6,20 @@ Test isolated business behaviour quickly.
 
 ## Concept and application
 
-Future tests should cover fuel-period generation, trip-rate snapshots and settlement allocation validation with mocked persistence.
+API unit tests are Jest `*.spec.ts` files colocated with their module. Run them
+with `npm --workspace apps/api test -- --runInBand` (or target a spec path).
+Current Asset/Driver and relationship tests cover paginated list query
+construction, omission of driver phone from the list projection, detail
+not-found behavior, profile update/deactivation, active-only Trip assignment,
+and agreed-rate snapshotting. Routes and contract-pricing regression tests are
+also present.
+
+These are service unit tests: Prisma is mocked, so they prove business decisions
+and requested query shapes, not PostgreSQL constraints, HTTP routing/DTO pipes,
+or browser behavior. Add integration tests against a separately configured
+test database to verify real constraints and query results, then a small E2E
+workflow to verify browser-to-database behavior. Never point automated tests
+at the development database.
 
 ## Why it matters and trade-offs
 

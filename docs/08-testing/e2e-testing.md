@@ -6,7 +6,12 @@ Test visible workflows across browser, API and database.
 
 ## Concept and application
 
-No E2E suite is installed in Phase 1. A first Phase 2 slice should test real trip creation, not a placeholder page.
+No browser E2E suite is currently installed. API service unit tests do not
+prove the complete UI-to-database workflow. A first E2E slice should create an
+Asset, create a Driver using synthetic contact data, confirm both appear in
+their paginated lists, and then verify that an inactive Asset or Driver cannot
+be used by a trip-creation request. The test must run against an isolated test
+database, not the development database.
 
 ## Why it matters and trade-offs
 

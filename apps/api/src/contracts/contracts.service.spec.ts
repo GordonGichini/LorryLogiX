@@ -1,10 +1,25 @@
 import { BadRequestException } from "@nestjs/common";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { PrismaService } from "../prisma/prisma.service";
 import { ContractsService } from "./contracts.service";
 
+type MockMethod = ReturnType<typeof jest.fn>;
+type PrismaMock = {
+  contract: { findUnique: MockMethod };
+  route: { findUnique: MockMethod };
+  contractRoute: {
+    create: MockMethod;
+    findFirst: MockMethod;
+    update: MockMethod;
+    findMany: MockMethod;
+    count: MockMethod;
+  };
+  $transaction: MockMethod;
+};
+
 describe("ContractsService route pricing", () => {
-  let prisma: any;
+  let prisma: PrismaMock;
   let service: ContractsService;
 
   beforeEach(() => {
@@ -15,9 +30,12 @@ describe("ContractsService route pricing", () => {
         create: jest.fn(),
         findFirst: jest.fn(),
         update: jest.fn(),
+        findMany: jest.fn(),
+        count: jest.fn(),
       },
+      $transaction: jest.fn(),
     };
-    service = new ContractsService(prisma);
+    service = new ContractsService(prisma as unknown as PrismaService);
   });
 
   it("rejects new contract pricing for an inactive route", async () => {
@@ -80,5 +98,35 @@ describe("ContractsService route pricing", () => {
     ).rejects.toThrow(BadRequestException);
 
     expect(prisma.contractRoute.update).not.toHaveBeenCalled();
+  });
+
+  it("returns only route pricing effective on the requested trip date", async () => {
+    prisma.$transaction.mockResolvedValue([[], 0]);
+
+    const result = await service.listRoutesForTrip({
+      activeOn: "2026-06-01",
+      page: 2,
+      pageSize: 10,
+    });
+
+    expect(result).toMatchObject({ page: 2, pageSize: 10, total: 0 });
+    expect(prisma.contractRoute.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          activeFrom: { lte: new Date("2026-06-01") },
+          AND: [
+            {
+              OR: [
+                { activeTo: null },
+                { activeTo: { gte: new Date("2026-06-01") } },
+              ],
+            },
+            { route: { is: { status: RecordStatus.ACTIVE } } },
+          ],
+        },
+        skip: 10,
+        take: 10,
+      }),
+    );
   });
 });

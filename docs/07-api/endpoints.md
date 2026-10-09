@@ -75,15 +75,53 @@ application error contract.
 ## Other verified endpoints
 
 - `GET /health`
-- `POST`/`GET` for clients, assets, and drivers
+- `POST`/`GET` for clients
+- Asset and Driver lifecycle routes listed below
 - `GET`/`POST` for contracts, plus contract-route operations
+- `GET /contracts/routes?activeOn=YYYY-MM-DD&page=1&pageSize=100` returns route pricing effective on the requested trip date, excluding inactive physical routes; uses the shared paginated response contract.
 - `GET`/`POST` for trips, plus trip-status updates
 - Fuel endpoints in the Fuel module
 
-The client, asset, driver, contract, and fuel list endpoints are not all
-paginated yet. See their controllers and DTOs before relying on a particular
-query or response shape. A dedicated `GET /routes/:id` endpoint does not
-currently exist.
+`POST /trips` requires an existing contract-route pricing row and active Asset;
+an optional Driver must also exist and be active. The contract route must be
+effective on the trip date, and its rate/currency are copied to the Trip as a
+historical snapshot. Historical Trip list queries continue to include
+deactivated Asset/Driver profiles because they do not filter by profile status.
+
+### Assets
+
+| Method | Path | Current behavior |
+| --- | --- | --- |
+| `POST` | `/assets` | Create using registration, description, and optional status. |
+| `GET` | `/assets` | Paginated list with optional status and registration/description search. Driver/asset list defaults are page 1, 25 rows; maximum page size is 100. |
+| `GET` | `/assets/:id` | Detail fields plus counts of trips, maintenance records, and documents. |
+| `PATCH` | `/assets/:id` | Partial update of registration and/or description. |
+| `DELETE` | `/assets/:id` | Set status to `INACTIVE`; repeat calls remain inactive. No reactivation endpoint. |
+
+Asset registration must be 2–40 characters and is unique. Description must be
+2–200 characters. Only list-required fields are selected in collection
+responses. Status filtering supports `ACTIVE`, `INACTIVE`, and
+`UNDER_MAINTENANCE`.
+
+### Drivers
+
+| Method | Path | Current behavior |
+| --- | --- | --- |
+| `POST` | `/drivers` | Create using full name and optional phone/status. |
+| `GET` | `/drivers` | Paginated list with optional status and name search; phone is omitted from the list projection. |
+| `GET` | `/drivers/:id` | Detail response includes optional phone and historical trip count. |
+| `PATCH` | `/drivers/:id` | Partial update of full name and/or phone; `phoneNumber: null` clears the number. |
+| `DELETE` | `/drivers/:id` | Set status to `INACTIVE`; repeat calls remain inactive. No reactivation endpoint. |
+
+Full name must be 2–120 characters. Supplied phone numbers must match the
+current format validator and are unique when non-null. Phone is personal data;
+the API currently has no authentication or authorization, so use synthetic
+values only. These endpoints are not production-safe for real personal data.
+
+Asset and Driver lists use stable ordering and return `data`, `page`,
+`pageSize`, `total`, and `totalPages`. Pagination/filtering on other master
+data and fuel lists is not yet consistent across the API. A dedicated
+`GET /routes/:id` endpoint does not currently exist.
 
 ## Security status
 
@@ -93,6 +131,7 @@ the API is used as a multi-user or multi-tenant production service.
 
 ## Testing
 
-API unit tests use Jest (`npm --workspace apps/api test`). Current route service
-tests exercise selected service behavior; they are not HTTP integration or
-browser E2E tests. The E2E test plan is documented separately.
+API unit tests use Jest (`npm --workspace apps/api test`). Asset, Driver, route,
+contract pricing, and trip-rule service tests exercise selected behavior;
+they are not HTTP integration or browser E2E tests. The E2E test plan is
+documented separately.

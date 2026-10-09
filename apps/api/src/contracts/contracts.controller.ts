@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import {
   CreateContractDto,
   CreateContractRouteDto,
   UpdateContractRouteDto,
 } from "./dto/create-contract.dto";
+import { ContractRouteListQueryDto } from "./dto/contract-route-query.dto";
 import { ContractsService } from "./contracts.service";
 
 @Controller("contracts")
@@ -14,6 +15,9 @@ export class ContractsController {
   }
   @Get() list() {
     return this.service.list();
+  }
+  @Get("routes") listRoutesForTrip(@Query() query: ContractRouteListQueryDto) {
+    return this.service.listRoutesForTrip(query);
   }
   @Post(":contractId/routes") addRoute(
     @Param("contractId") contractId: string,
