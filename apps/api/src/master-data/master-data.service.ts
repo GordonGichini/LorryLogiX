@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { toPaginatedResult } from "../common/pagination";
+import { getInactiveRoutePricingCloseDate } from "../common/route-pricing-policy";
 import { PrismaService } from "../prisma/prisma.service";
 import {
   CreateAssetDto,
@@ -158,6 +159,23 @@ export class MasterDataService {
       const targetPricing = route.contracts.find(
         (pricing) => pricing.contractId === dto.contractId,
       );
+      if (route.status === RecordStatus.INACTIVE) {
+        const inactiveRouteCloseDate = getInactiveRoutePricingCloseDate(
+          route.status,
+          targetPricing,
+          dto,
+        );
+        if (!targetPricing || !inactiveRouteCloseDate) {
+          throw new BadRequestException(
+            "Cannot add pricing for an inactive route.",
+          );
+        }
+        return tx.contractRoute.update({
+          where: { id: targetPricing.id },
+          data: { activeTo: inactiveRouteCloseDate },
+          include: { route: true, contract: { include: { client: true } } },
+        });
+      }
       if (targetPricing && targetPricing.id !== currentPricing?.id)
         throw new ConflictException(
           "This route already has pricing for the selected contract.",
@@ -238,6 +256,28 @@ export class MasterDataService {
       ];
     }
 
+    const sortBy = query.sortBy ?? "origin";
+    const sortDirection = query.sortDirection ?? "asc";
+    const orderBy: Prisma.RouteOrderByWithRelationInput[] =
+      sortBy === "origin"
+        ? [
+            { origin: sortDirection },
+            { destination: "asc" },
+            { id: "asc" },
+          ]
+        : sortBy === "destination"
+          ? [
+              { destination: sortDirection },
+              { origin: "asc" },
+              { id: "asc" },
+            ]
+          : [
+              { status: sortDirection },
+              { origin: "asc" },
+              { destination: "asc" },
+              { id: "asc" },
+            ];
+
     const [data, total] = await this.prisma.$transaction([
       this.prisma.route.findMany({
         where,
@@ -247,7 +287,7 @@ export class MasterDataService {
             include: { contract: { include: { client: true } } },
           },
         },
-        orderBy: [{ origin: "asc" }, { destination: "asc" }],
+        orderBy,
         skip: (query.page - 1) * query.pageSize,
         take: query.pageSize,
       }),

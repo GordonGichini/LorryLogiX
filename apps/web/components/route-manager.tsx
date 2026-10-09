@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowUpRight, Pencil, Plus, Search, X } from "lucide-react";
 import {
   createRoute,
@@ -9,7 +9,14 @@ import {
   updateRoute,
   updateRoutePricing,
 } from "../lib/api/routes";
-import type { Contract, Route, RoutePricing } from "../lib/api/types";
+import type {
+  Contract,
+  PaginatedResponse,
+  Route,
+  RoutePricing,
+} from "../lib/api/types";
+
+const ROUTES_PAGE_SIZE = 25;
 
 type FormState = {
   origin: string;
@@ -32,13 +39,13 @@ const emptyForm: FormState = {
 };
 
 export function RouteManager({
-  initialRoutes,
+  initialPage,
   contracts,
 }: {
-  initialRoutes: Route[];
+  initialPage: PaginatedResponse<Route>;
   contracts: Contract[];
 }) {
-  const [routes, setRoutes] = useState(initialRoutes);
+  const [routePage, setRoutePage] = useState(initialPage);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Route | null>(null);
   const [adding, setAdding] = useState(false);
@@ -51,44 +58,56 @@ export function RouteManager({
     "ALL" | "ACTIVE" | "INACTIVE"
   >("ALL");
   const [sortBy, setSortBy] = useState<
-    "origin" | "destination" | "rate" | "status"
+    "origin" | "destination" | "status"
   >("origin");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(initialPage.page);
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const [loadingRoutes, setLoadingRoutes] = useState(false);
 
-  const visibleRoutes = useMemo(() => {
-    const filtered = routes
-      .filter(
-        (route) => statusFilter === "ALL" || route.status === statusFilter,
-      )
-      .filter((route) =>
-        `${route.origin} ${route.destination}`
-          .toLowerCase()
-          .includes(query.toLowerCase()),
-      );
-    return [...filtered].sort((left, right) => {
-      const leftValue =
-        sortBy === "rate"
-          ? Number(left.contracts?.[0]?.rate ?? 0)
-          : sortBy === "status"
-            ? left.status
-            : sortBy === "destination"
-              ? left.destination.toLowerCase()
-              : left.origin.toLowerCase();
-      const rightValue =
-        sortBy === "rate"
-          ? Number(right.contracts?.[0]?.rate ?? 0)
-          : sortBy === "status"
-            ? right.status
-            : sortBy === "destination"
-              ? right.destination.toLowerCase()
-              : right.origin.toLowerCase();
-      const comparison =
-        typeof leftValue === "number" && typeof rightValue === "number"
-          ? leftValue - rightValue
-          : String(leftValue).localeCompare(String(rightValue));
-      return sortDirection === "asc" ? comparison : -comparison;
-    });
-  }, [routes, query, sortBy, sortDirection, statusFilter]);
+  useEffect(() => {
+    let isCurrentRequest = true;
+    const debounce = window.setTimeout(async () => {
+      setLoadingRoutes(true);
+      try {
+        const result = await getRoutes({
+          page,
+          pageSize: ROUTES_PAGE_SIZE,
+          status: statusFilter,
+          search: query,
+          sortBy,
+          sortDirection,
+        });
+        if (isCurrentRequest) {
+          if (result.totalPages > 0 && page > result.totalPages) {
+            setPage(result.totalPages);
+          } else if (result.totalPages === 0 && page !== 1) {
+            setPage(1);
+          } else {
+            setRoutePage(result);
+            setError("");
+          }
+        }
+      } catch (loadError) {
+        if (isCurrentRequest) {
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Routes could not be loaded.",
+          );
+        }
+      } finally {
+        if (isCurrentRequest) setLoadingRoutes(false);
+      }
+    }, query ? 250 : 0);
+
+    return () => {
+      isCurrentRequest = false;
+      window.clearTimeout(debounce);
+    };
+  }, [page, query, refreshVersion, sortBy, sortDirection, statusFilter]);
+
+  const routes = routePage.data;
 
   function openCreate() {
     setAdding(true);
@@ -162,8 +181,9 @@ export function RouteManager({
               }
             : {}),
         });
+        setPage(1);
       }
-      setRoutes(await getRoutes());
+      setRefreshVersion((version) => version + 1);
       setAdding(false);
       setEditing(null);
       setForm(emptyForm);
@@ -189,7 +209,7 @@ export function RouteManager({
     setError("");
     try {
       await deactivateRoute(route.id);
-      setRoutes(await getRoutes());
+      setRefreshVersion((version) => version + 1);
     } catch (deactivateError) {
       setError(
         deactivateError instanceof Error
@@ -209,16 +229,20 @@ export function RouteManager({
             <Search size={15} />
             <input
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setPage(1);
+              }}
               placeholder="Search routes"
               className="w-full bg-transparent outline-none placeholder:text-[#8b97a2]"
             />
           </div>
           <select
             value={statusFilter}
-            onChange={(event) =>
-              setStatusFilter(event.target.value as typeof statusFilter)
-            }
+            onChange={(event) => {
+              setStatusFilter(event.target.value as typeof statusFilter);
+              setPage(1);
+            }}
             className="form-input !mt-0 !w-auto"
           >
             <option value="ALL">All statuses</option>
@@ -227,12 +251,14 @@ export function RouteManager({
           </select>
           <select
             value={sortBy}
-            onChange={(event) => setSortBy(event.target.value as typeof sortBy)}
+            onChange={(event) => {
+              setSortBy(event.target.value as typeof sortBy);
+              setPage(1);
+            }}
             className="form-input !mt-0 !w-auto"
           >
             <option value="origin">Sort: origin</option>
             <option value="destination">Sort: destination</option>
-            <option value="rate">Sort: rate</option>
             <option value="status">Sort: status</option>
           </select>
           <button
@@ -277,7 +303,7 @@ export function RouteManager({
           }}
         />
       ) : null}
-      <div className="data-panel">
+      <div className="data-panel" aria-busy={loadingRoutes}>
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead>
@@ -291,7 +317,7 @@ export function RouteManager({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#dce2e7]">
-              {visibleRoutes.length === 0 ? (
+              {routes.length === 0 ? (
                 <tr>
                   <td
                     colSpan={6}
@@ -301,7 +327,7 @@ export function RouteManager({
                   </td>
                 </tr>
               ) : (
-                visibleRoutes.map((route) => {
+                routes.map((route) => {
                   const pricing = route.contracts?.[0];
                   return (
                     <tr key={route.id}>
@@ -367,6 +393,31 @@ export function RouteManager({
               )}
             </tbody>
           </table>
+        </div>
+        <div className="flex items-center justify-between gap-3 border-t border-[#dce2e7] px-4 py-3 text-sm text-[#607080]">
+          <span>
+            {loadingRoutes
+              ? "Loading routes..."
+              : `${routePage.total} route${routePage.total === 1 ? "" : "s"} · page ${routePage.page} of ${Math.max(routePage.totalPages, 1)}`}
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={loadingRoutes || page <= 1}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              className="rounded-md border border-[#d1d9e0] px-3 py-1.5 font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              disabled={loadingRoutes || page >= routePage.totalPages}
+              onClick={() => setPage((current) => current + 1)}
+              className="rounded-md border border-[#d1d9e0] px-3 py-1.5 font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
       {selected ? (

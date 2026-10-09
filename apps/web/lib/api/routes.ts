@@ -6,22 +6,26 @@ export type RouteListParams = {
   pageSize?: number;
   status?: "ACTIVE" | "INACTIVE" | "ALL";
   search?: string;
+  sortBy?: "origin" | "destination" | "status";
+  sortDirection?: "asc" | "desc";
 };
 
 export async function getRoutes(
   params: RouteListParams = {},
-): Promise<Route[]> {
+): Promise<PaginatedResponse<Route>> {
   const query = new URLSearchParams();
-  if (params.page) query.set("page", String(params.page));
-  if (params.pageSize) query.set("pageSize", String(params.pageSize));
+  if (params.page !== undefined) query.set("page", String(params.page));
+  if (params.pageSize !== undefined)
+    query.set("pageSize", String(params.pageSize));
   if (params.status && params.status !== "ALL") query.set("status", params.status);
-  if (params.search) query.set("search", params.search);
+  if (params.search?.trim()) query.set("search", params.search.trim());
+  if (params.sortBy) query.set("sortBy", params.sortBy);
+  if (params.sortDirection)
+    query.set("sortDirection", params.sortDirection);
 
-  const response = await apiFetch<PaginatedResponse<Route>>(
+  return apiFetch<PaginatedResponse<Route>>(
     `/routes${query.toString() ? `?${query.toString()}` : ""}`,
   );
-
-  return response.data ?? [];
 }
 
 export type RoutePayload = {

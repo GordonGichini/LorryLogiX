@@ -3,7 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import { Prisma, RecordStatus } from "@prisma/client";
+import { getInactiveRoutePricingCloseDate } from "../common/route-pricing-policy";
 import { PrismaService } from "../prisma/prisma.service";
 import {
   CreateContractDto,
@@ -44,6 +45,15 @@ export class ContractsService {
       where: { id: contractId },
     });
     if (!contract) throw new NotFoundException("Contract not found.");
+    const route = await this.prisma.route.findUnique({
+      where: { id: dto.routeId },
+    });
+    if (!route) throw new NotFoundException("Route not found.");
+    if (route.status === RecordStatus.INACTIVE) {
+      throw new BadRequestException(
+        "Cannot add pricing for an inactive route.",
+      );
+    }
     if (dto.activeTo && dto.activeTo < dto.activeFrom)
       throw new BadRequestException("activeTo must be on or after activeFrom.");
     return this.prisma.contractRoute.create({
@@ -64,13 +74,38 @@ export class ContractsService {
   ) {
     const contractRoute = await this.prisma.contractRoute.findFirst({
       where: { id: routeId, contractId },
+      include: { route: true },
     });
     if (!contractRoute)
       throw new NotFoundException("Contract route pricing not found.");
-    const activeFrom = dto.activeFrom ?? contractRoute.activeFrom.toISOString();
-    const activeTo = dto.activeTo ?? contractRoute.activeTo?.toISOString();
+    const activeFrom = dto.activeFrom
+      ? new Date(dto.activeFrom)
+      : contractRoute.activeFrom;
+    const activeTo = dto.activeTo
+      ? new Date(dto.activeTo)
+      : contractRoute.activeTo;
     if (activeTo && activeTo < activeFrom)
       throw new BadRequestException("activeTo must be on or after activeFrom.");
+
+    const inactiveRouteCloseDate = getInactiveRoutePricingCloseDate(
+      contractRoute.route.status,
+      contractRoute,
+      {
+        contractId: contractRoute.contractId,
+        rate: dto.rate,
+        currency: dto.currency,
+        activeFrom: dto.activeFrom,
+        activeTo: dto.activeTo,
+      },
+    );
+    if (inactiveRouteCloseDate) {
+      return this.prisma.contractRoute.update({
+        where: { id: routeId },
+        data: { activeTo: inactiveRouteCloseDate },
+        include: { route: true, contract: { include: { client: true } } },
+      });
+    }
+
     return this.prisma.contractRoute.update({
       where: { id: routeId },
       data: {

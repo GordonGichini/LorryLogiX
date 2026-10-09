@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, NotFoundException } from "@nestjs/common";
 import { RecordStatus } from "@prisma/client";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { MasterDataService } from "./master-data.service";
 
 describe("MasterDataService routes", () => {
@@ -98,6 +99,18 @@ describe("MasterDataService routes", () => {
     expect(result.totalPages).toBe(1);
     expect(result.page).toBe(1);
     expect(result.pageSize).toBe(10);
+    expect(prisma.route.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {},
+        skip: 0,
+        take: 10,
+        orderBy: [
+          { origin: "asc" },
+          { destination: "asc" },
+          { id: "asc" },
+        ],
+      }),
+    );
   });
 
   it("filters inactive routes when status is requested", async () => {
@@ -118,6 +131,43 @@ describe("MasterDataService routes", () => {
     });
 
     expect(result.data[0]?.status).toBe(RecordStatus.INACTIVE);
+    expect(prisma.route.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { status: RecordStatus.INACTIVE },
+      }),
+    );
+  });
+
+  it("applies search and allowed sorting on the server query", async () => {
+    prisma.$transaction.mockResolvedValue([[], 0]);
+
+    await service.listRoutes({
+      page: 2,
+      pageSize: 10,
+      status: RecordStatus.ACTIVE,
+      search: "Kumpar",
+      sortBy: "destination",
+      sortDirection: "desc",
+    });
+
+    expect(prisma.route.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          status: RecordStatus.ACTIVE,
+          OR: [
+            { origin: { contains: "Kumpar", mode: "insensitive" } },
+            { destination: { contains: "Kumpar", mode: "insensitive" } },
+          ],
+        },
+        skip: 10,
+        take: 10,
+        orderBy: [
+          { destination: "desc" },
+          { origin: "asc" },
+          { id: "asc" },
+        ],
+      }),
+    );
   });
 
   it("updates an existing route and throws when the route is missing", async () => {
@@ -156,5 +206,27 @@ describe("MasterDataService routes", () => {
       },
     });
     expect(result.status).toBe(RecordStatus.INACTIVE);
+  });
+
+  it("rejects adding pricing to an inactive route through the route API", async () => {
+    prisma.route.findUnique.mockResolvedValue({
+      id: "route-1",
+      status: RecordStatus.INACTIVE,
+      contracts: [],
+    });
+    prisma.contract.findUnique.mockResolvedValue({ id: "contract-1" });
+    prisma.$transaction.mockImplementation(
+      (callback: (tx: typeof prisma) => Promise<unknown>) => callback(prisma),
+    );
+
+    await expect(
+      service.updateRoutePricing("route-1", {
+        contractId: "contract-1",
+        rate: "1200",
+        activeFrom: "2026-01-01",
+      }),
+    ).rejects.toThrow(BadRequestException);
+
+    expect(prisma.contractRoute.create).not.toHaveBeenCalled();
   });
 });

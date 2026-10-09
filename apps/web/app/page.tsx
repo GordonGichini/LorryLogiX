@@ -9,7 +9,13 @@ export default async function HomePage() {
   const [clients, contracts, routes, trips] = await Promise.all([
     getClients().catch(() => []),
     getContracts().catch(() => []),
-    getRoutes().catch(() => []),
+    getRoutes().catch(() => ({
+      data: [],
+      page: 1,
+      pageSize: 25,
+      total: 0,
+      totalPages: 0,
+    })),
     getTrips({ page: 1, pageSize: 5 }).catch(() => ({
       data: [],
       total: 0,
@@ -72,7 +78,7 @@ export default async function HomePage() {
         <StatCard
           icon={Route}
           title="Routes"
-          value={String(routes.length)}
+          value={String(routes.total)}
           subtitle="Operational corridors"
         />
       </section>

@@ -42,8 +42,15 @@ Routes currently support server-side pagination through the `GET /routes` API wi
 - `page` and `pageSize`
 - optional `status` filter (`ACTIVE`, `INACTIVE`, or `ALL`)
 - optional `search` query for origin/destination matching
-- stable ordering by origin then destination
+- allow-listed server-side sorting by origin, destination, or status
+- deterministic tie-break ordering for stable pages
 - `total` and `totalPages` metadata in the response
+
+The Routes screen sends its search, status, sorting, and page state to the API
+and displays the returned pagination metadata. Other list endpoints are not
+all paginated yet. Rate sorting is not supported because each physical route
+can have multiple contract-specific pricing records; the business meaning of
+"sort by rate" must be decided before implementing it.
 
 This is intentionally kept simple and production-appropriate for the current scale while avoiding unbounded list queries.
 

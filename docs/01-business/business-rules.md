@@ -18,6 +18,16 @@ Routes are physical origin/destination corridors. Commercial ownership and prici
 
 When route pricing is reassigned to another contract, the previous pricing period is closed when the new effective date is later. Contract route counts represent currently active pricing relationships, while historical relationships remain available for audit and historical trip context.
 
+### Inactive route pricing
+
+The chosen lifecycle rule is:
+
+- An inactive route cannot receive a new contract-pricing relationship or have pricing reassigned to another contract.
+- Existing contract-pricing rows remain stored for historical trips and audit context.
+- For an inactive route, an existing pricing row may only have its `activeTo` date shortened. Its contract, rate, currency, and `activeFrom` date remain unchanged.
+- Creating a new trip against an inactive route is rejected, even if its contract-pricing date range would otherwise allow the trip date.
+- Deactivation does not automatically rewrite existing contract-pricing dates; a user may explicitly close the period using the allowed shortening operation.
+
 ## Questions and exercise
 
 What data proves who paid fuel versus who ultimately owes it?

@@ -5,7 +5,13 @@ import { RouteManager } from "../../components/route-manager";
 
 export default async function RoutesPage() {
   const [routes, contracts] = await Promise.all([
-    getRoutes().catch(() => []),
+    getRoutes().catch(() => ({
+      data: [],
+      page: 1,
+      pageSize: 25,
+      total: 0,
+      totalPages: 0,
+    })),
     getContracts().catch(() => []),
   ]);
 
@@ -15,7 +21,7 @@ export default async function RoutesPage() {
         title="Routes"
         description="Manage physical corridors and client-specific commercial rates."
       />
-      <RouteManager initialRoutes={routes} contracts={contracts} />
+      <RouteManager initialPage={routes} contracts={contracts} />
     </div>
   );
 }
